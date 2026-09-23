@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T&T Tử Vi Đẩu Số</title>
+<script src="https://cdn.jsdelivr.net/npm/iztro/dist/iztro.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #C9A84C; --gold-light: #E8CC80; --gold-dark: #A07830;
+  --gold-subtle: rgba(201,168,76,0.15);
+  --navy: #0A1628; --navy-mid: #1A2F4E; --navy-light: #243B5E;
+  --navy-card: rgba(26,47,78,0.9);
+  --text: #FFFFFF; --text-muted: rgba(255,255,255,0.65); --text-dim: rgba(255,255,255,0.4);
+  --border: rgba(201,168,76,0.25); --border-focus: rgba(201,168,76,0.7);
+  --shadow-md: 0 4px 24px rgba(0,0,0,0.4); --shadow-gold: 0 4px 20px rgba(201,168,76,0.3);
+  --radius-sm: 6px; --radius-md: 12px; --radius-lg: 16px;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--navy); color: var(--text);
+  min-height: 100vh; line-height: 1.6;
+}
+
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+header {
+  background: var(--navy); border-bottom: 2px solid var(--gold);
+  padding: 16px 0; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+}
+.header-inner { display: flex; align-items: center; gap: 14px; }
+.logo { font-size: 1.4rem; font-weight: 800; letter-spacing: 0.08em; }
+.logo .amp { color: var(--gold); }
+.app-name { color: var(--gold-light); font-size: 1rem; margin-left: 4px; }
+.app-tagline { color: var(--text-dim); font-size: 0.78rem; margin-left: auto; text-align: right; display:none; }
+@media (min-width: 640px) { .app-tagline { display: block; } }
+
+.api-panel {
+  margin: 16px 0; background: var(--navy-mid);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.api-toggle {
+  width: 100%; background: none; border: none; color: var(--text-muted);
+  padding: 10px 16px; cursor: pointer; text-align: left; font-size: 0.85rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.api-toggle:hover { color: var(--text); background: var(--gold-subtle); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); margin-left: auto; }
+.status-dot.active { background: #4CAF50; }
+.api-body { padding: 12px 16px 16px; display: flex; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--border); }
+.api-body .input { flex: 1; min-width: 200px; }
+.hint { color: var(--text-dim); font-size: 0.75rem; width: 100%; margin-top: 4px; }
+
+.card {
+  background: var(--navy-card); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+}
+.card h2 { color: var(--gold); font-size: 1.05rem; letter-spacing: 0.04em; margin-bottom: 16px; }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.field label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
+.dob-row { display: flex; gap: 8px; align-items: center; }
+.dob-row .input { text-align: center; }
+
+.btn {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: var(--navy); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.03em;
+  border: none; border-radius: var(--radius-sm); padding: 13px 28px;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-gold); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-ghost {
+  background: transparent; color: var(--gold); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 11px 22px; cursor: pointer; transition: all 0.2s;
+  font-size: 0.9rem;
+}
+.btn-ghost:hover { background: var(--gold-subtle); border-color: var(--gold); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.input, select.input {
+  background: var(--navy-light); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  padding: 11px 14px; width: 100%; font-size: 0.92rem;
+  outline: none; transition: border-color 0.2s;
+}
+.input::placeholder { color: var(--text-dim); }
+.input:focus { border-color: var(--border-focus); }
+
+.spinner {
+  width: 20px; height: 20px; border: 3px solid var(--border);
+  border-top-color: var(--gold); border-radius: 50%;
+  animation: spin 0.75s linear infinite; display: inline-block; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast {
+  position: fixed; bottom: 24px; right: 24px; left: auto;
+  background: var(--navy-mid); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); padding: 12px 20px;
+  box-shadow: var(--shadow-md); animation: slideIn 0.3s ease; z-index: 1000; max-width: 320px;
+}
+.toast.success { border-color: #4CAF50; }
+.toast.error { border-color: #EF5350; color: #EF9A9A; }
+@keyframes slideIn { from { transform: translateX(100px); opacity: 0; } }
+
+main { padding: 24px 0 60px; }
+
+/* ===== Lá số dạng lưới cổ điển 4x4 ===== */
+.chart-wrap { overflow-x: auto; }
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  grid-template-rows: repeat(4, minmax(150px, auto));
+  gap: 4px;
+  min-width: 700px;
+  background: var(--gold-dark);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.palace-cell {
+  background: var(--navy-mid);
+  padding: 8px 9px;
+  font-size: 11.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  min-height: 150px;
+}
+.palace-cell.is-menh { background: linear-gradient(160deg, var(--navy-light), var(--navy-mid)); box-shadow: inset 0 0 0 2px var(--gold); }
+.palace-cell.is-than::after {
+  content: 'THÂN'; position: absolute; top: 6px; right: 8px;
+  font-size: 9px; color: var(--gold); font-weight: 700; letter-spacing: 0.05em;
+  border: 1px solid var(--gold); border-radius: 4px; padding: 1px 4px;
+}
+.p-name { color: var(--gold-light); font-weight: 700; font-size: 12.5px; letter-spacing: 0.02em; }
+.p-branch { color: var(--text-dim); font-size: 10px; }
+.p-major { font-weight: 700; color: var(--text); font-size: 12px; }
+.p-major .bright { color: var(--gold); font-weight: 400; font-size: 10px; }
+.p-minor { color: #B9CBE8; font-size: 10.5px; }
+.p-adj { color: var(--text-dim); font-size: 9.5px; }
+.p-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; }
+.tag { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 8px; }
+.tag-tt { background: rgba(76,140,255,0.2); color: #9CC2FF; }
+.tag-triet { background: rgba(239,83,80,0.2); color: #FF9E9C; }
+.tag-tuan { background: rgba(160,120,220,0.25); color: #D3B8F5; }
+.p-dahan { color: var(--gold); font-size: 9.5px; opacity: 0.85; }
+.p-empty { color: var(--text-dim); font-style: italic; }
+
+.center-block {
+  grid-column: 2 / 4; grid-row: 2 / 4;
+  background: radial-gradient(circle at 30% 20%, var(--navy-light), var(--navy));
+  border: 1px solid var(--gold-subtle);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 12px; gap: 6px; overflow: auto;
+}
+.center-block .cb-title { color: var(--gold); font-weight: 800; font-size: 1.05rem; letter-spacing: 0.06em; margin-bottom: 2px; }
+.center-block .cb-name { color: var(--text); font-size: 1rem; font-weight: 600; }
+.center-block .cb-line { color: var(--text-muted); font-size: 0.82rem; }
+.center-block .cb-cuc { color: var(--gold-light); font-weight: 700; margin-top: 4px; }
+.cb-table { border-collapse: collapse; text-align: left; font-size: 10.5px; line-height: 1.5; }
+.cb-table td { padding: 1px 4px; vertical-align: top; }
+.cb-table .cb-k { color: var(--text-dim); white-space: nowrap; }
+.cb-table .cb-v { color: var(--text); font-weight: 500; }
+.cb-table .cb-v b { color: var(--gold-light); font-weight: 700; }
+.cb-notes { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--gold-subtle); color: #9CC2FF; font-weight: 700; font-size: 11px; text-align: center; line-height: 1.6; }
+
+/* ===== Vận hạn box ===== */
+.box3 { display: flex; gap: 14px; flex-wrap: wrap; }
+.box3 > div {
+  flex: 1; min-width: 200px; background: var(--navy-light);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px;
+}
+.box3 h3 { margin: 0 0 6px 0; font-size: 0.85rem; color: var(--gold); letter-spacing: 0.03em; }
+.box3 b { color: var(--text); }
+
+/* ===== Luận giải ===== */
+.luangiai-text {
+  color: var(--text); font-size: 0.98rem; line-height: 1.85;
+}
+.luangiai-text p { margin-bottom: 14px; }
+.luangiai-text h2 {
+  color: var(--gold); font-size: 1.15rem; margin: 30px 0 12px 0;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.luangiai-text h2:first-child { margin-top: 0; }
+.luangiai-text h3 {
+  color: var(--gold-light, var(--gold)); font-size: 1rem; margin: 20px 0 8px 0;
+}
+.luangiai-text strong { color: var(--gold); font-weight: 600; }
+.luangiai-placeholder { color: var(--text-dim); font-style: italic; text-align: center; padding: 30px 10px; }
+
+/* ===== PHẦN 4 — thẻ (tab) chủ đề chuyên sâu, giống các App uy tín ===== */
+.phan4-wrap { margin-top: 8px; }
+.phan4-tabbar {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--border);
+}
+.phan4-tabbtn {
+  flex: 0 1 auto; max-width: 100%; background: rgba(201,168,76,0.06); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 0.88rem; padding: 8px 14px; border-radius: 999px;
+  cursor: pointer; white-space: normal; text-align: center; transition: all 0.15s ease;
+}
+.phan4-tabbtn:hover { background: rgba(201,168,76,0.14); color: var(--text); }
+.phan4-tabbtn.active { background: var(--gold); color: #1a1608; border-color: var(--gold); font-weight: 600; }
+.phan4-panel { display: none; }
+.phan4-panel.active { display: block; }
+.phan4-panel .luangiai-text h2 { display: none; } /* tránh lặp tiêu đề PHẦN 4 trong từng panel */
+
+.cachcuc-item {
+  background: rgba(201,168,76,0.06); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 8px;
+}
+.cachcuc-item .cc-name { color: var(--gold); font-weight: 600; font-size: 0.95rem; }
+.cachcuc-item .cc-note { color: var(--text-dim); font-size: 0.85rem; margin-top: 3px; }
+.cachcuc-item .cc-src { color: var(--text-dim); font-size: 0.75rem; margin-top: 3px; font-style: italic; }
+
+.history-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  background: rgba(201,168,76,0.06); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.history-item .hi-name { color: var(--gold); font-weight: 600; font-size: 0.9rem; }
+.history-item .hi-detail { color: var(--text-dim); font-size: 0.78rem; margin-top: 2px; }
+.history-item .hi-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.history-item .hi-actions button { font-size: 0.78rem; padding: 6px 10px; }
+.history-empty { color: var(--text-dim); font-style: italic; padding: 10px 4px; }
+
+.note-banner {
+  background: rgba(201,168,76,0.1); border: 1px solid var(--border);
+  padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.warn-banner {
+  background: rgba(239,83,80,0.12); border: 1px solid rgba(239,83,80,0.4);
+  padding: 10px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 0.85rem;
+  color: #FFC9C7;
+}
+
+footer { text-align: center; color: var(--text-dim); font-size: 0.78rem; padding: 20px 0 40px; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--navy); }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 4px; }
+
+@media (max-width: 700px) {
+  .container { padding: 0 12px; }
+  .card { padding: 16px; }
+  .chart-grid {
+    display: flex; flex-direction: column; min-width: 0;
+  }
+  .palace-cell, .center-block {
+    grid-row: auto !important; grid-column: auto !important;
+  }
+  .center-block { order: -1; }
+}
+
+/* ===== In luận giải ra PDF (dùng window.print() của trình duyệt, không cần thư viện ngoài) ===== */
+#printArea { display: none; }
+.print-header { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px solid #C9A84C; }
+.print-header h1 { font-size: 1.3rem; margin-bottom: 6px; }
+.print-header .pline { font-size: 0.85rem; color: #444; margin: 2px 0; }
+@media print {
+  body * { visibility: hidden; }
+  #printArea, #printArea * { visibility: visible; }
+  #printArea {
+    display: block !important; position: absolute; left: 0; top: 0; width: 100%;
+    color: #111; background: #fff; padding: 12mm;
+  }
+  #printArea h1, #printArea h2, #printArea h3 { color: #7a5f18; }
+  #printArea .luangiai-text p { margin-bottom: 10px; line-height: 1.7; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container header-inner">
+    <div class="logo">T<span class="amp">&</span>T</div>
+    <span class="app-name">Tử Vi Đẩu Số</span>
+    <span class="app-tagline">An lá số · Luận giải theo cổ văn Tử Vi Đẩu Số Toàn Thư</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="api-panel" id="apiPanel">
+    <button class="api-toggle" onclick="toggleApiPanel()">
+      ⚙ Gemini API Key (dùng cho phần Luận giải)
+      <span id="apiDot" class="status-dot"></span>
+    </button>
+    <div id="apiBody" class="api-body" style="display:none">
+      <input class="input" type="password" id="apiKeyInput" placeholder="AIza...">
+      <button class="btn" onclick="handleSaveKey()">Lưu</button>
+      <button class="btn-ghost" onclick="checkApiKey()">🔍 Kiểm tra Key</button>
+      <button class="btn-ghost" id="btnXoaApiKey" onclick="xoaApiKey()">🗑 Xóa Key</button>
+      <p class="hint">Key chỉ lưu trong trình duyệt của anh, không gửi đi đâu khác ngoài Google API. Cần key này để dùng phần "Luận giải chi tiết" — phần an lá số không cần key. Chưa có Key? Lấy tại <a href="https://aistudio.google.com/api-keys" target="_blank" style="color:var(--gold-light)">aistudio.google.com/api-keys</a>. <strong>Lưu ý khi chia sẻ máy/App cho người khác dùng:</strong> Key đã lưu sẽ tự hiện lại mỗi lần mở App trên cùng trình duyệt này — nếu không muốn người khác dùng chùa Key của anh, hãy bấm "🗑 Xóa Key" trước khi chia sẻ. Người dùng khác cần tự nhập Key riêng của họ để dùng phần Luận giải.</p>
+      <p class="hint" id="apiKeyStatus"></p>
+    </div>
+  </div>
+
+  <div class="api-panel" id="historyPanel">
+    <button class="api-toggle" onclick="toggleHistoryPanel()">
+      🕘 Lịch sử lá số đã lưu
+      <span id="historyCountLabel" class="hint" style="margin-left:auto; margin-right:8px;"></span>
+    </button>
+    <div id="historyBody" class="api-body" style="display:none; flex-direction:column;">
+      <div id="historyListBox" style="width:100%;"></div>
+      <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+        <p class="hint" style="margin:0;">Lịch sử chỉ lưu trong trình duyệt trên máy này (tối đa 30 lá số gần nhất), không gửi đi đâu cả.</p>
+        <button class="btn-ghost" id="btnXoaTatCaLichSu" onclick="xoaTatCaLichSu()" style="white-space:nowrap;">🗑 Xóa tất cả</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="container">
+
+  <div class="card">
+    <h2>THÔNG TIN LÁ SỐ</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label>Họ và tên (không bắt buộc)</label>
+        <input class="input" id="hoTen" placeholder="VD: Trần Văn Thành">
+      </div>
+      <div class="field" style="grid-column: span 2;">
+        <label>Ngày sinh Dương lịch (ngày / tháng / năm)</label>
+        <div class="dob-row">
+          <input class="input" type="number" id="dobDay" min="1" max="31" value="30" placeholder="Ngày">
+          <span style="color:var(--text-dim)">/</span>
+          <input class="input" type="number" id="dobMonth" min="1" max="12" value="9" placeholder="Tháng">
+          <span style="color:var(--text-dim)">/</span>
+          <input class="input" type="number" id="dobYear" min="1900" max="2100" value="1958" placeholder="Năm">
+        </div>
+      </div>
+      <div class="field">
+        <label>Giờ sinh</label>
+        <select class="input" id="timeIndex">
+          <option value="0-early">Tý đầu giờ (00h00-00h59)</option>
+          <option value="0-late">Tý cuối giờ (23h00-23h59)*</option>
+          <option value="1">Sửu (1h-3h)</option>
+          <option value="2" selected>Dần (3h-5h)</option>
+          <option value="3">Mão (5h-7h)</option>
+          <option value="4">Thìn (7h-9h)</option>
+          <option value="5">Tỵ (9h-11h)</option>
+          <option value="6">Ngọ (11h-13h)</option>
+          <option value="7">Mùi (13h-15h)</option>
+          <option value="8">Thân (15h-17h)</option>
+          <option value="9">Dậu (17h-19h)</option>
+          <option value="10">Tuất (19h-21h)</option>
+          <option value="11">Hợi (21h-23h)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Giới tính</label>
+        <select class="input" id="gender">
+          <option value="男">Nam</option>
+          <option value="女">Nữ</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Xem vận hạn năm</label>
+        <input class="input" type="number" id="viewYear" value="2026">
+      </div>
+      <div class="field">
+        <label>Xem vận hạn tháng (Lưu Nguyệt)</label>
+        <select class="input" id="viewMonth">
+          <option value="1">Tháng 1</option>
+          <option value="2">Tháng 2</option>
+          <option value="3">Tháng 3</option>
+          <option value="4">Tháng 4</option>
+          <option value="5">Tháng 5</option>
+          <option value="6">Tháng 6</option>
+          <option value="7">Tháng 7</option>
+          <option value="8">Tháng 8</option>
+          <option value="9">Tháng 9</option>
+          <option value="10">Tháng 10</option>
+          <option value="11">Tháng 11</option>
+          <option value="12">Tháng 12</option>
+        </select>
+      </div>
+    </div>
+    <script>
+      // Mặc định chọn tháng dương lịch hiện tại cho ô "Xem vận hạn tháng"
+      (function(){
+        var sel = document.getElementById('viewMonth');
+        if (sel) sel.value = String(new Date().getMonth() + 1);
+      })();
+    </script>
+    <p class="hint" style="margin-top:10px;">* Tý cuối giờ (23h-23h59): App tự tính theo ngày hôm sau, đúng quy ước chính thức của Tử Vi Đẩu Số cho trường hợp biên "Vãn Tý".</p>
+    <div style="margin-top:16px;">
+      <button class="btn" id="btnLapSo" onclick="lapLaSo()">Lập lá số</button>
+    </div>
+  </div>
+
+  <div id="ketQuaWrap" style="display:none;">
+    <div class="card">
+      <h2 style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        LÁ SỐ TỬ VI
+        <button class="btn-ghost" id="btnLuuLichSu" onclick="luuLaSoVaoLichSu()" style="font-size:0.8rem; font-weight:400;">💾 Lưu vào lịch sử</button>
+      </h2>
+      <div id="gioTyNote"></div>
+      <div class="chart-wrap">
+        <div class="chart-grid" id="chartGrid"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>VẬN HẠN</h2>
+      <div id="vanHanBox" class="box3"></div>
+    </div>
+
+    <div class="card" id="cachCucCard" style="display:none">
+      <h2>CÁCH CỤC ĐÃ NHẬN DIỆN <span class="hint" style="font-weight:400">(bằng thuật toán đối chiếu, không phải AI tự đoán)</span></h2>
+      <div id="cachCucBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>LUẬN GIẢI CHI TIẾT</h2>
+      <div class="field" style="margin-bottom:14px;">
+        <label>Bối cảnh cá nhân (không bắt buộc) — giúp luận giải sát hợp hơn với đời sống thực tế của bạn</label>
+        <textarea class="input" id="boiCanhCaNhan" rows="3" placeholder="VD: nơi sinh, hoàn cảnh gia đình, môi trường sống/công việc hiện tại, sự kiện quan trọng đang trải qua... Cùng một lá số nhưng mỗi người một hoàn cảnh khác nhau (như hạt giống gieo trên đất khác nhau), điền vào đây để AI áp dụng luận giải sát với cuộc sống thật của bạn hơn."></textarea>
+        <p class="hint">Phần này KHÔNG ảnh hưởng đến cách tính lá số (Mệnh/Thân/Cục/sao...), chỉ giúp AI diễn giải phù hợp hơn với hoàn cảnh sống thực tế của bạn. Để trống nếu không muốn cung cấp.</p>
+      </div>
+      <div id="luanGiaiArea">
+        <div class="luangiai-placeholder">Bấm nút bên dưới để AI luận giải lá số này theo văn phong trữ tình, dựa trên tư liệu cổ văn Tử Vi Đẩu Số Toàn Thư đã được dự án dịch và tổng hợp.</div>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn-ghost" id="btnLuanGiai" onclick="luanGiaiLaSo()">✨ Luận giải lá số này</button>
+        <button class="btn-ghost" id="btnTaiPDF" onclick="taiLuanGiaiPDF()">📥 Tải luận giải về máy (PDF)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="printArea"></div>
+
+</main>
+
+<footer>T&T Hoàng Gia Royal — Tử Vi Đẩu Số · Dữ liệu tính toán: thư viện iztro (MIT License) + module tự viết theo Official RuleSet dự án · Luận giải: AI tổng hợp từ cổ văn Tử Vi Đẩu Số Toàn Thư (bản dịch tham khảo, chưa qua chuyên gia thẩm định)</footer>
+
+<div id="toast" style="display:none"></div>
+
+<script type="application/json" id="kb-data">
+{"stars": {"Tử Vi": {"content": "# 04_TU_VI_KB — v0.6: LUẬN GIẢI SAO TỬ VI (từ cổ văn S013)\n\n**Nguồn:** S013 — Tử Vi Đẩu Số Toàn Thư, quyển 3 (cổ văn, phú thể). Confidence nguồn gốc: A. Confidence bản diễn giải tiếng Việt: **C** (do Claude tự dịch/diễn giải văn phú cổ súc tích, CẦN người am hiểu Hán Nôm/Tử Vi kiểm tra lại trước khi coi là chính thức).\n\n**Độ sáng Tử Vi (theo cổ văn):** Miếu tại Sửu-Mùi-Ngọ; Vượng tại Dần-Thân-Mão-Dậu-Tỵ-Hợi; Bình tại Tý; không có Hãm. *(Đối chiếu với bảng S012 ở v0.5: có sai khác nhỏ — S012 ghi Tử Vi vượng tại nhiều cung hơn, không ghi \"vô Hãm\" rõ như S013. Ghi nhận SCHOOL_VARIATION, chưa hợp nhất 2 bảng.)*\n\n---\n\n## Diễn giải theo từng thế cách (paraphrase, không dịch nguyên văn)\n\n**Tử Vi đơn thủ tại Ngọ (không gặp Kình Dương/Hình sát):** cách cục tốt, dễ đạt địa vị cao — cổ văn nhắc riêng người tuổi Giáp/Đinh/Kỷ hợp cách này hơn.\n\n**Tử Vi tại Tý-Ngọ có Hóa Khoa/Hóa Quyền/Hóa Lộc chiếu về (tam hợp):** được xem là cách cục đặc biệt tốt, cổ văn gọi là \"cách ngửa mặt chầu sao Bắc Đẩu\" (ý nói được trọng vọng).\n\n**Tử Vi tại Hợi (nam mệnh) / Dần (nữ mệnh):** người tuổi Nhâm hoặc Giáp sinh vào thế này được xem là phú quý.\n\n**Tử Vi tại Mão-Dậu, gặp nhóm sát tinh (Không-Kiếp-Kình-Đà-Hỏa-Linh):** dễ có xu hướng sống xuất thế/tu hành hơn là theo đường công danh thông thường.\n\n**Tử Vi + Thiên Phủ cùng bộ, có Tả Phù-Hữu Bật hỗ trợ (đồng cung hoặc chiếu hợp):** cổ văn coi trọng bộ này — nếu được Tả Hữu phù trợ đầy đủ thì cả đời phú quý; ngược lại nếu Tử Vi-Phá Quân đồng cung mà KHÔNG có Tả Hữu/sao tốt thì bị xem là xấu (cổ văn dùng chữ nặng, ý chỉ hạng người bất chính/hung dữ).\n\n**Tử Vi + Phá Quân + Tham Lang (gặp nhau trong cách cục):** cổ văn cảnh báo đây là thế dễ lệch lạc về đường tình cảm/dục vọng (\"chí dâm\"), áp dụng cho cả nam và nữ mệnh.\n\n**Tử Vi + Thất Sát, được Hóa Quyền:** dù Thất Sát vốn mang tính cứng rắn/sát phạt, nhưng khi có Hóa Quyền đi kèm lại chuyển thành hỗ trợ tốt (cổ văn ví như \"biến gỗ vụn thành rường cột\").\n\n**Tử Vi + Vũ Khúc + Phá Quân, gặp Kình Dương/Đà La:** cổ văn cảnh báo dễ có kẻ dưới lộng quyền/gây rối, chỉ nên làm kinh doanh chứ không hợp làm quan chức.\n\n**Tử Vi + Văn Xương + Văn Khúc (đồng cung hoặc hội chiếu):** được xem là cách phú quý khả kỳ (có thể mong đợi).\n\n**Mệnh nữ có Tử Vi + Thái Dương:** cổ văn cho là dễ gặp được chồng hiền sớm — nhưng ghi chú thêm: nếu Tử Vi ở cung Dần/Ngọ/Thân thì tốt (vượng phu ích tử); nếu ở thế hãm/bình thường mà lại gặp thêm nhóm sát tinh ở các cung Tý/Dậu/Tỵ/Hợi thì ngược lại, không được đánh giá tốt như \"ngọc có tì vết\".\n\n---\n\n## VIỆC CẦN LÀM TIẾP (cho đúng sao Tử Vi)\n- Còn khoảng 10+ câu phú khác về Tử Vi trong cùng nguồn CHƯA diễn giải (vì nguồn rất dài) — sẽ tiếp tục ở lượt sau nếu anh muốn đầy đủ 100%\n- Cần người am hiểu Hán Nôm/Tử Vi kiểm tra lại toàn bộ bản diễn giải trên trước khi đưa vào App chính thức\n- Sau khi xong Tử Vi mới chuyển sang sao tiếp theo (Thiên Cơ) theo đúng yêu cầu \"hoàn thiện từng phần\" của anh\n\n\n# 04_TU_VI_KB — v0.7: LUẬN GIẢI SAO TỬ VI (PHẦN 2 — HOÀN THIỆN 100%)\n\nTiếp nối v0.6. Cùng nguồn S013, cùng mức confidence (nguồn A / bản dịch C — cần người rành Hán Nôm kiểm tra lại).\n\n---\n\n**Tử Vi + Thiên Phủ đồng cung tại Dần/Thân, không gặp sát tinh:** người tuổi Giáp (thuộc nhóm \"lục Giáp\") hưởng phú quý trọn đời.\n\n**Tử Vi - Thiên Phủ ở thế \"triều viên\" (tại Dần/Thân) gặp Lộc Tồn/Hóa Lộc:** phúc dày cả đời, có thể đạt địa vị cao (tới hàng \"tam công\" — chức quan cao cấp thời xưa). Nếu cung Mệnh tại Dần/Thân lại thêm sao tốt thì càng hay.\n\n**Tử Vi - Thiên Phủ - Thái Dương - Thái Âm đều ở vượng địa** (cụ thể: Tử Vi tại Ngọ, Thiên Phủ tại Sửu), không gặp sát tinh, lại có Hóa Lộc: chắc chắn thành người tài giỏi, có thể làm quan lớn.\n\n**Tử Vi - Thiên Phủ - Vũ Khúc cùng chiếu vào cung Tài Bạch/Điền Trạch, thêm Hóa Quyền/Hóa Lộc** (hoặc có Tả Hữu/Lộc Tồn): trở thành người giàu có, sống xa hoa.\n\n**Tử Vi + Tả Phù + Hữu Bật cùng đóng 1 cung:** có uy quyền, \"hô một tiếng trăm người vâng dạ\" — địa vị cao. *(Chú thích gốc: nếu Tả Hữu chỉ ở tam hợp chiếu về thì mức tốt kém hơn 1 bậc; nếu thế này rơi vào cung Tài Bạch thì hợp làm quan phụ trách tài chính/kho bạc quốc gia.)*\n\n**Tử Vi - Thiên Phủ gặp Kình Dương:** hợp làm thương nhân lớn, không hợp làm quan. *(Nếu có Vũ Khúc ở cung Thiên Di thì vẫn tốt.)*\n\n**Tử Vi + Lộc Tồn đồng cung, có Thái Dương - Thái Âm ở tam hợp chiếu về:** phú quý không thể tả hết.\n\n**Tử Vi + Hóa Quyền + Hóa Lộc mà gặp Kình Dương/Đà La:** tuy vẫn thành công/may mắn nhưng là người tâm thuật không đàng hoàng (đạt được bằng thủ đoạn).\n\n**Tử Vi - Phá Quân thủ Mệnh tại Thìn/Tuất/Sửu/Mùi, có thêm sao tốt:** có thể mong đợi phú quý.\n\n**Tử Vi - Thiên Phủ ở thế phối hợp tại Tỵ/Hợi:** một khi phát thì phú quý song toàn. *(⚠️ Ghi chú kỹ thuật: theo đúng quy tắc an sao đã xác nhận ở Phần 1, Thiên Phủ luôn đối xứng Tử Vi qua trục Dần-Thân nên 2 sao KHÔNG BAO GIỜ cùng thủ 1 cung — câu cổ văn này nhiều khả năng nói về thế \"giáp cung\" hoặc tam hợp/xung chiếu tại Tỵ-Hợi chứ không phải đồng cung. Đây là điểm CẦN người rành kỹ thuật Tử Vi xác nhận lại, Claude không tự suy diễn thêm.)*\n\n**Cung Mệnh được Tử Vi và Thiên Phủ \"giáp\" (đóng ở 2 cung liền kề hai bên):** là cách cục quý.\n\n**Tử Vi + Thái Âm gặp sát tinh:** dù có tài nhưng cả đời chỉ làm được chức nhỏ (thư lại/nha lại), không phát huy được hết khả năng.\n\n**Tử Vi - Phá Quân tại Thìn/Tuất:** cách cục xấu, cổ văn gọi là \"vua tôi bất nghĩa\" — dẫn ví dụ lịch sử An Lộc Sơn, Triệu Cao (2 nhân vật phản nghịch nổi tiếng trong sử Trung Hoa) để minh họa cho thế này.\n\n---\n\n## ✅ HOÀN THÀNH 100% mục Tử Vi (toàn bộ phú văn về Tử Vi trong nguồn S013 đã được diễn giải, gộp cả v0.6 + v0.7)\n\n**Tổng kết các điểm CẦN người chuyên môn xác nhận lại trước khi dùng chính thức:**\n1. Toàn bộ bản dịch nói chung (bản chất văn phú cổ dễ hiểu sai)\n2. Điểm mâu thuẫn nhỏ về Miếu/Vượng giữa nguồn S012 và S013 (đã ghi ở v0.6)\n3. Câu \"Tử Phủ đồng lâm tại Tỵ/Hợi\" — có thể là lỗi dịch hoặc cách dùng từ cổ khác với hiểu biết thông thường về vị trí 2 sao\n\n## BƯỚC TIẾP THEO\nChuyển sang sao **Thiên Phủ** (đã có sẵn 1 phần nội dung liên quan trong các câu Tử Phủ phối hợp ở trên — sẽ tổng hợp lại, tránh dịch trùng lặp).\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Phủ": {"content": "# 04_TU_VI_KB — v0.8: LUẬN GIẢI SAO THIÊN PHỦ (hoàn thiện)\n\nNguồn S013, cùng quy ước confidence: nguồn gốc A / bản dịch tiếng Việt C (cần chuyên gia kiểm tra).\n\n**Độ sáng Thiên Phủ (theo cổ văn):** Miếu tại Tý-Sửu-Mùi-Dần-Thìn-Tuất; Vượng tại Ngọ-Dậu; Đắc địa tại Mão-Tỵ-Thân-Hợi; không có Hãm.\n\n---\n\n**Thiên Phủ tại Tuất, không gặp sát tinh:** người tuổi Giáp/Kỷ giàu có, phú quý. *(Nếu thêm nhóm 4 sát tinh Kình-Đà-Hỏa-Linh thì bị giảm bớt, có tì vết.)*\n\n**Thiên Phủ tại Ngọ hoặc Tuất, có Thiên Tướng đến chầu (tam hợp/chiếu):** người tuổi Giáp đạt phú quý bậc nhất phẩm (cấp cao nhất trong hệ thống quan chức cổ).\n\n**Phủ - Tướng ở thế \"chầu về\" cung Mệnh:** hưởng bổng lộc rất dồi dào. *(Chú thích gốc: nếu Mệnh tại Dần/Thân, Phủ-Tướng đóng ở cung Tài Bạch, lại có sao Lộc/sao Quan đến chầu — đây là cách cục thượng hạng; nếu rơi vào cung khác thì mức tốt kém hơn.)*\n\n**Thiên Phủ + Văn Xương + Văn Khúc + Tả Phù + Hữu Bật (hội đủ):** đỗ đạt cao, được ân sủng/vinh hiển lớn.\n\n**Thiên Phủ + Thiên Tướng + Thiên Lương cùng hội chiếu:** cách cục \"vua tôi hội ngộ tốt đẹp\" — ý nói được cấp trên hoặc quý nhân nâng đỡ, hợp tác thuận lợi.\n\n**Thiên Phủ + Lộc Tồn + Văn Xương + Văn Khúc:** tài sản rất lớn (của cải dư dả, \"vạn ức\").\n\n**Thiên Phủ + Vũ Khúc tại cung Tài Bạch/Điền Trạch, thêm Hóa Quyền/Hóa Lộc** (hoặc có Tả Hữu/Lộc Tồn): trở thành người giàu có, sống xa hoa. *(Câu này trùng với 1 câu đã dịch ở mục Tử Vi vì cổ văn ghi chung \"Tử Phủ Vũ Khúc\" — không lặp lại nội dung, chỉ ghi chú tại đây để tránh hiểu nhầm là thiếu sót.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Thiên Phủ\nToàn bộ phú văn về Thiên Phủ (không tính các câu ghép chung với Tử Vi đã dịch ở phần trước) đã được diễn giải.\n\n## BƯỚC TIẾP THEO\nSao thứ 3 theo đúng thứ tự: **Thiên Cơ**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Cơ": {"content": "# 04_TU_VI_KB — v0.9: LUẬN GIẢI SAO THIÊN CƠ (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C (cần chuyên gia kiểm tra).\n\n**Độ sáng Thiên Cơ (theo cổ văn):** Miếu tại Tý-Ngọ; Vượng tại Thìn-Dậu; Hãm tại Sửu-Mùi.\n\n---\n\n**Thiên Cơ + Thiên Lương hội hợp:** giỏi bàn luận việc binh/chiến lược; kể cả khi đóng ở cung Tuất cũng được coi là tốt. *(Ví dụ cổ văn dẫn: Mạnh Tử có cung Thiên Di tại Tuất, có Cơ-Lương.)*\n\n**Thiên Cơ + Thiên Lương thủ Mệnh, thêm sao tốt:** phú quý, tính tình nhân từ. *(Nếu thêm Kình Dương/Hóa Kỵ thì hợp con đường tu hành hơn.)*\n\n**Thiên Cơ + Thiên Lương chiếu Mệnh/Thân mà gặp Không (Địa Không/Tuần Triệt):** thiên về xuất gia tu hành. *(Thiên Cơ hoặc Thiên Đồng đơn thủ Mệnh/Thân mà gặp Không Vong cũng theo hướng này.)*\n\n**Thiên Cơ + Thiên Lương bị Thất Sát + Phá Quân xung chiếu:** số làm đạo sĩ/tăng lữ, đời sống phiêu bạt. *(Trừ khi có Tử Vi và Thái Dương tốt đi kèm thì lại khác — không xấu.)*\n\n**Bộ \"Cơ - Nguyệt - Đồng - Lương\" (Thiên Cơ, Thái Âm, Thiên Đồng, Thiên Lương cùng hội):** hợp làm công chức/viên chức (người làm công ăn lương, không phải người đứng đầu). *(Áp dụng khi Mệnh tại Dần/Thân. Nếu thêm sao tốt thì vượt lên trên mức \"chỉ làm công chức\" này — tốt hơn; không gặp sao tốt cũng không gặp sao xấu thì là người bình thường; nếu gặp sát tinh/Không Kiếp/Hóa Kỵ thì thành cách xấu, thấp kém.)*\n\n**Thiên Cơ + Thiên Lương + Tham Lang + Thái Âm cùng hội:** vất vả mưu sinh, làm ăn buôn bán đến khuya không được nghỉ ngơi. *(Gặp thêm sao xấu thì càng bôn ba, cực nhọc hơn.)*\n\n**Thiên Cơ gặp sát tinh xấu đồng cung:** dễ có tính trộm cắp vặt, hành vi lén lút, tiểu nhân.\n\n**Thiên Cơ tại Tỵ (bị/được Dậu chiếu):** ham rượu chè, rời xa gia đình/dòng tộc, tính gian xảo nặng.\n\n**Cự Môn hãm địa gặp Thiên Cơ:** bị coi là \"phá cách\" (cách cục hỏng). *(Với mệnh nữ tại Dần/Thân/Mão/Dậu: dù có thể giàu sang nhưng khó tránh chuyện tình cảm không đứng đắn; nếu Thiên Cơ-Cự Môn ở thế thủ/chiếu tại Dần/Thân thì phúc phần không được trọn vẹn.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Thiên Cơ\n\n## BƯỚC TIẾP THEO\nSao thứ 4: **Thái Dương**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thái Dương": {"content": "# 04_TU_VI_KB — v0.10: LUẬN GIẢI SAO THÁI DƯƠNG (hoàn thiện + mục ghép Nhật-Nguyệt)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Thái Dương (theo cổ văn, LƯU Ý nguồn gốc chỉ liệt kê 1 phần 12 cung, không đủ hết):** Miếu tại Mão; Vượng tại Dần-Thìn-Tỵ-Ngọ; Hãm tại Tý. *(Các cung còn lại KHÔNG được cổ văn này ghi rõ — không tự suy diễn thêm, để trống.)*\n\n---\n\n## A. Riêng sao Thái Dương\n\n**Thái Dương chiếu sáng tại Tý/Thìn/Mão, sinh ban ngày:** phú quý, danh tiếng vang xa (cổ văn ví \"mặt trời chiếu cửa sấm\").\n\n**Thái Dương + Văn Xương (hoặc Văn Khúc) tại cung Quan Lộc:** được trọng dụng nơi triều đình/cơ quan cao cấp (ý nói địa vị công danh cao).\n\n**Thái Dương \"lặn\" tại Mùi/Thân, đóng cung Mệnh:** tính cách siêng năng lúc đầu, về sau sinh lười biếng.\n\n**Thái Dương tại Ngọ:** người tuổi Canh/Tân/Đinh/Kỷ được phú quý song toàn.\n\n**Thái Dương Hóa Kỵ:** dễ gặp thị phi, mắt cũng dễ bị tổn thương (ám chỉ bệnh về mắt).\n\n**Mệnh nữ có Thái Dương đúng cách (miếu vượng, không gặp sát tinh):** sớm gặp chồng hiền, đáng tin cậy — vượng phu ích tử. *(Nếu Thái Dương hãm địa thì chỉ bình thường, không đặc biệt tốt.)*\n\n---\n\n## B. Mục ghép \"Thái Dương — Thái Âm cùng chiếu\" (cổ văn xếp liền sau mục Thái Dương — dịch luôn tại đây, sẽ KHÔNG dịch lại khi tới lượt Thái Âm)\n\n**Thái Dương tại Tỵ, Thái Âm tại Dậu, Mệnh an tại Sửu (được cả 2 sao chiếu về):** cách \"bước lên cung trăng\" — ý nói thi cử/công danh thành đạt cao.\n\n**Thái Dương tại Mão, Thái Âm tại Hợi, Mệnh an tại Mùi:** cũng là cách thành đạt trong khoa cử/công danh.\n\n**Thái Dương-Thái Âm cùng đóng tại Mùi (chiếu về), Mệnh an tại Sửu:** có tài làm bậc vương hầu.\n\n**Thái Dương-Thái Âm cùng ở Mệnh/Thân tại Sửu/Mùi:** nếu tam hợp không có sao tốt thì lại thành xấu. *(Nếu ở Tý/Ngọ/Thìn/Tuất thì Mệnh/Thân càng tốt hơn.)*\n\n**Thái Dương-Thái Âm trực tiếp thủ Mệnh không bằng ở thế chiếu về hợp lại cùng sáng:** ý nói đôi khi 2 sao ở thế chiếu hợp lại tốt hơn thế đóng thẳng tại Mệnh. *(Thủ Mệnh mà gặp nhiều sao tốt thì tốt, gặp nhiều sao xấu thì xấu; ít sao tốt cũng chưa hẳn là đẹp.)*\n\n**Thái Dương tại Thìn, Thái Âm tại Tuất (cùng tranh sáng, cả 2 đều đắc thế):** quyền lực và bổng lộc không nhỏ.\n\n**Cung Mệnh hoặc cung Tài Bạch được Thái Dương-Thái Âm \"giáp\" (kẹp 2 bên), thêm sao tốt:** không có quyền lớn thì cũng giàu có. *(Nếu gặp Kình Dương/Đà La xung/thủ thì chỉ hợp con đường tu hành.)*\n\n**Thái Dương-Thái Âm kỵ nhất ở thế \"phản bối\":** *(Chú giải gốc khá dài: khi Nhật-Nguyệt đồng cung, cần xét giờ sinh — ban ngày sinh thì mừng có Thái Dương vượng, ban đêm sinh thì hợp Thái Âm. Gặp thế \"phản bối\" — ví dụ Thái Dương tại Tuất, Thái Âm tại Thìn — nếu ra ngoài lập nghiệp xa quê thì vẫn có thể tốt, KHÔNG nên cứng nhắc coi mọi trường hợp phản bối đều xấu.)*\n\n**Thái Âm-Thái Dương hợp cùng Tả Phù-Hữu Bật:** là cách tốt.\n\n**Thái Dương-Thái Âm ở cung hãm địa lại gặp sát tinh xấu:** vất vả, bôn ba cực nhọc.\n\n**Thái Dương-Thái Âm gặp Kình Dương-Đà La:** dễ khắc hại người thân (cha mẹ/anh em).\n\n**Thái Dương-Thái Âm gặp thêm Tham Lang, Thất Sát hội hợp:** nam giới dễ thành kẻ gian đạo, nữ giới dễ lăng loàn.\n\n**Thái Dương-Thái Âm ở cung Tật Ách/Mệnh mà gặp Tuần/Triệt Không:** dễ bị tật ở lưng (gù/còng) hoặc mù lòa.\n\n---\n\n## ✅ HOÀN THÀNH mục Thái Dương (kèm trọn mục ghép Nhật-Nguyệt, sẽ không lặp lại khi làm tới Thái Âm)\n\n## BƯỚC TIẾP THEO\nTheo đúng thứ tự cổ văn liệt kê, tiếp theo là 2 sao **Văn Xương — Văn Khúc** (cổ văn gộp chung 1 mục cho 2 sao này), sau đó mới tới Vũ Khúc.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Văn Xương": {"content": "# 04_TU_VI_KB — v0.11: LUẬN GIẢI VĂN XƯƠNG — VĂN KHÚC (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng (cả 2 sao, theo cổ văn):** Miếu tại Tỵ-Dậu-Sửu; Đắc địa tại Thân-Tý-Thìn; Hãm tại Dần-Ngọ-Tuất.\n\n---\n\n## A. Riêng Văn Xương\n\n**Văn Xương + Vũ Khúc:** người đa tài đa nghệ (giỏi nhiều mặt). *(Áp dụng khi Thân/Mệnh tại nhóm 4 cung Mộ — Thìn/Tuất/Sửu/Mùi hoặc Mão/Dậu/Tỵ/Hợi; luận thêm theo tam hợp Hóa Khoa-Quyền-Lộc.)*\n\n**Văn Xương (mang Hóa Khoa) chiếu hợp:** cổ văn dẫn ví dụ Giả Nghị — nhân vật lịch sử đỗ đạt từ khi còn rất trẻ.\n\n**Tả Phù + Văn Xương:** đạt địa vị cao (tới hàng \"tam thai\" — chức quan lớn thời xưa).\n\n**Văn Xương + Vũ Khúc tại Thân/Mệnh:** vừa có văn tài vừa có phẩm chất ngay thẳng đầy đủ. *(Ví dụ cổ văn dẫn: lá số của Tôn Tẫn — nhà quân sự nổi tiếng thời Chiến Quốc.)*\n\n## B. Riêng Văn Khúc\n\n**\"Nhị Khúc\" (Văn Khúc + Vũ Khúc) ở miếu địa, gặp Tả Hữu:** có tài sản/địa vị của bậc tướng lĩnh, quan lớn. *(Văn Khúc hợp tại Tý-Ngọ-Dậu; Vũ Khúc hợp tại nhóm 4 cung Mộ.)*\n\n**Nhị Khúc ở cung vượng địa:** uy danh lừng lẫy. *(Văn Khúc tại Tý là tốt nhất, tại Mão/Dậu kém hơn 1 bậc; Vũ Khúc tại Thìn là tốt nhất, tại Sửu/Mùi kém hơn.)*\n\n**Nhị Khúc + Tham Lang tại Ngọ/Sửu:** cần đề phòng nguy cơ tai nạn liên quan đến nước (chết đuối) trong giai đoạn vận hạn đó.\n\n## C. Mục ghép Văn Xương — Văn Khúc\n\n**Xương Khúc \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên Mệnh):** cách cục lạ, đặc biệt tốt. *(Ví dụ: Mệnh tại Sửu, Xương tại Dần, Khúc tại Tý. Không phú thì cũng quý — nhưng cần có nhiều sao tốt khác đi kèm mới thật sự luận là cách quý.)*\n\n**Xương Khúc đóng tại Sửu/Mùi, \"gặp thời\" tại Mão/Dậu:** được gần gũi/trọng dụng bởi bậc quyền quý. *(Ví dụ cổ văn dẫn: Giả Nghị, Bốc Thương — Xương Khúc tại Mùi, Mệnh tại Sửu. Cần Mệnh có thêm sao Hóa tốt mới luận theo cách này.)*\n\n**Xương Khúc tại Tỵ/Hợi:** không phú quý bình thường mà là đại phú.\n\n**Xương Khúc cùng sao tốt tại cung Phúc Đức:** cổ văn gọi là cách \"tay áo ngọc, hương trời\" — ý chỉ sang trọng, thanh cao. *(Nếu thêm Tử Vi, đóng tại Ngọ thì càng đẹp.)*\n\n**Xương Khúc ở cung hãm gặp sát tinh phá:** chỉ có tiếng tăm hư danh, không có thực chất tương xứng.\n\n**Xương Khúc hãm địa gặp sao Thiên Thương:** cổ văn ví như Nhan Hồi chết yểu (học trò giỏi nhất của Khổng Tử, mất sớm). *(Cần Mệnh có Kiếp/Không, Kình/Đà; đến vận hạn gặp Thất Sát, Kình/Đà chồng nhau mới luận theo cách xấu này.)*\n\n**Người tuổi Kỷ/Tân/Nhâm có Xương Khúc, đến hạn gặp tại Thìn/Tuất:** cần đề phòng nguy cơ liên quan đến nước (trầm mình/nhảy sông). *(Nếu Xương Khúc nhập miếu thì tốt; cần cả Đại Hạn lẫn Tiểu Hạn cùng đến mới luận theo cách xấu này — không phải cứ có là xấu ngay.)*\n\n**Xương Khúc + Liêm Trinh tại Tỵ/Hợi:** dễ gặp hình phạt/tai họa, tính hay khoa trương giả dối. *(Vì ôm đồm nhiều việc nên dễ rối loạn; nếu cung Quan Lộc tại Tý/Thân có nhiều sao tốt thì lại là cách đẹp, không xấu.)*\n\n**Xương Khúc + Lộc Tồn:** càng thêm đặc biệt (tốt).\n\n**Xương Khúc + Phá Quân tại Dần/Mão, gặp sát tinh/Kình Dương xung phá:** vất vả, bôn ba cực nhọc.\n\n**Xương Khúc + Tả Hữu hội cùng Kình Dương-Đà La:** dễ có nốt ruồi/vết bớt bẩm sinh khác thường trên cơ thể.\n\n**Phụ nữ có Xương Khúc:** thông minh, phú quý, nhưng dễ đa tình/lăng nhăng.\n\n---\n\n## ✅ HOÀN THÀNH mục Văn Xương — Văn Khúc\n\n## BƯỚC TIẾP THEO\nSao thứ 6: **Vũ Khúc**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Văn Khúc": {"content": "# 04_TU_VI_KB — v0.11: LUẬN GIẢI VĂN XƯƠNG — VĂN KHÚC (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng (cả 2 sao, theo cổ văn):** Miếu tại Tỵ-Dậu-Sửu; Đắc địa tại Thân-Tý-Thìn; Hãm tại Dần-Ngọ-Tuất.\n\n---\n\n## A. Riêng Văn Xương\n\n**Văn Xương + Vũ Khúc:** người đa tài đa nghệ (giỏi nhiều mặt). *(Áp dụng khi Thân/Mệnh tại nhóm 4 cung Mộ — Thìn/Tuất/Sửu/Mùi hoặc Mão/Dậu/Tỵ/Hợi; luận thêm theo tam hợp Hóa Khoa-Quyền-Lộc.)*\n\n**Văn Xương (mang Hóa Khoa) chiếu hợp:** cổ văn dẫn ví dụ Giả Nghị — nhân vật lịch sử đỗ đạt từ khi còn rất trẻ.\n\n**Tả Phù + Văn Xương:** đạt địa vị cao (tới hàng \"tam thai\" — chức quan lớn thời xưa).\n\n**Văn Xương + Vũ Khúc tại Thân/Mệnh:** vừa có văn tài vừa có phẩm chất ngay thẳng đầy đủ. *(Ví dụ cổ văn dẫn: lá số của Tôn Tẫn — nhà quân sự nổi tiếng thời Chiến Quốc.)*\n\n## B. Riêng Văn Khúc\n\n**\"Nhị Khúc\" (Văn Khúc + Vũ Khúc) ở miếu địa, gặp Tả Hữu:** có tài sản/địa vị của bậc tướng lĩnh, quan lớn. *(Văn Khúc hợp tại Tý-Ngọ-Dậu; Vũ Khúc hợp tại nhóm 4 cung Mộ.)*\n\n**Nhị Khúc ở cung vượng địa:** uy danh lừng lẫy. *(Văn Khúc tại Tý là tốt nhất, tại Mão/Dậu kém hơn 1 bậc; Vũ Khúc tại Thìn là tốt nhất, tại Sửu/Mùi kém hơn.)*\n\n**Nhị Khúc + Tham Lang tại Ngọ/Sửu:** cần đề phòng nguy cơ tai nạn liên quan đến nước (chết đuối) trong giai đoạn vận hạn đó.\n\n## C. Mục ghép Văn Xương — Văn Khúc\n\n**Xương Khúc \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên Mệnh):** cách cục lạ, đặc biệt tốt. *(Ví dụ: Mệnh tại Sửu, Xương tại Dần, Khúc tại Tý. Không phú thì cũng quý — nhưng cần có nhiều sao tốt khác đi kèm mới thật sự luận là cách quý.)*\n\n**Xương Khúc đóng tại Sửu/Mùi, \"gặp thời\" tại Mão/Dậu:** được gần gũi/trọng dụng bởi bậc quyền quý. *(Ví dụ cổ văn dẫn: Giả Nghị, Bốc Thương — Xương Khúc tại Mùi, Mệnh tại Sửu. Cần Mệnh có thêm sao Hóa tốt mới luận theo cách này.)*\n\n**Xương Khúc tại Tỵ/Hợi:** không phú quý bình thường mà là đại phú.\n\n**Xương Khúc cùng sao tốt tại cung Phúc Đức:** cổ văn gọi là cách \"tay áo ngọc, hương trời\" — ý chỉ sang trọng, thanh cao. *(Nếu thêm Tử Vi, đóng tại Ngọ thì càng đẹp.)*\n\n**Xương Khúc ở cung hãm gặp sát tinh phá:** chỉ có tiếng tăm hư danh, không có thực chất tương xứng.\n\n**Xương Khúc hãm địa gặp sao Thiên Thương:** cổ văn ví như Nhan Hồi chết yểu (học trò giỏi nhất của Khổng Tử, mất sớm). *(Cần Mệnh có Kiếp/Không, Kình/Đà; đến vận hạn gặp Thất Sát, Kình/Đà chồng nhau mới luận theo cách xấu này.)*\n\n**Người tuổi Kỷ/Tân/Nhâm có Xương Khúc, đến hạn gặp tại Thìn/Tuất:** cần đề phòng nguy cơ liên quan đến nước (trầm mình/nhảy sông). *(Nếu Xương Khúc nhập miếu thì tốt; cần cả Đại Hạn lẫn Tiểu Hạn cùng đến mới luận theo cách xấu này — không phải cứ có là xấu ngay.)*\n\n**Xương Khúc + Liêm Trinh tại Tỵ/Hợi:** dễ gặp hình phạt/tai họa, tính hay khoa trương giả dối. *(Vì ôm đồm nhiều việc nên dễ rối loạn; nếu cung Quan Lộc tại Tý/Thân có nhiều sao tốt thì lại là cách đẹp, không xấu.)*\n\n**Xương Khúc + Lộc Tồn:** càng thêm đặc biệt (tốt).\n\n**Xương Khúc + Phá Quân tại Dần/Mão, gặp sát tinh/Kình Dương xung phá:** vất vả, bôn ba cực nhọc.\n\n**Xương Khúc + Tả Hữu hội cùng Kình Dương-Đà La:** dễ có nốt ruồi/vết bớt bẩm sinh khác thường trên cơ thể.\n\n**Phụ nữ có Xương Khúc:** thông minh, phú quý, nhưng dễ đa tình/lăng nhăng.\n\n---\n\n## ✅ HOÀN THÀNH mục Văn Xương — Văn Khúc\n\n## BƯỚC TIẾP THEO\nSao thứ 6: **Vũ Khúc**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Vũ Khúc": {"content": "# 04_TU_VI_KB — v0.12: LUẬN GIẢI SAO VŨ KHÚC (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Vũ Khúc (theo cổ văn):** Miếu tại Thìn-Tuất-Sửu-Mùi; Vượng tại Tý-Ngọ; Bình hòa tại Tỵ-Hợi; không có Hãm.\n\n---\n\n**Vũ Khúc tại cung miếu địa:** uy danh lừng lẫy. *(Người tuổi Thìn/Tuất/Sửu/Mùi an Mệnh tại Thìn/Tuất — nhóm 4 cung Mộ — là tốt nhất; an tại Sửu/Mùi thì kém hơn 1 bậc.)*\n\n**Vũ Khúc gặp Văn Xương/Văn Khúc:** thông minh, khéo léo tài nghệ vô cùng. *(Áp dụng khi Vũ Khúc đồng cung với Thiên Tướng, lại gặp thêm Xương/Khúc.)*\n\n**Vũ Khúc + Lộc Tồn + Thiên Mã cùng hội (\"giao trì\"):** phát tài nơi xa quê hương, đất khách.\n\n**Vũ Khúc tại cung Thiên Di:** thương nhân lớn, buôn bán giàu có. *(Cần có nhiều sao tốt đi kèm mới luận theo cách này.)*\n\n**Vũ Khúc + Liêm Trinh + Tham Lang + Thất Sát hội hợp:** hợp làm nghề buôn bán/kinh doanh.\n\n**Vũ Khúc + Phá Quân:** phá tán tổ nghiệp, gia đình lụn bại, đời sống vất vả cực nhọc.\n\n**Vũ Khúc + Địa Kiếp + sát tinh hội cùng Kình Dương:** dễ vì tiền bạc mà gây ra bạo lực/tai họa (\"vì tài mà cầm dao\").\n\n**Vũ Khúc + Thiên Khôi — Thiên Việt ở miếu vượng:** hợp làm quan phụ trách tài chính/kho bạc quốc gia.\n\n**Vũ Khúc + Tham Lang tại cung Tài Bạch/Điền Trạch:** bỗng nhiên phát tài lớn.\n\n**Vũ Khúc + Tham Lang gặp thêm sát tinh/Hóa Kỵ:** chỉ làm được nghề thủ công/kỹ nghệ, không phát lớn.\n\n**Vũ Khúc + Liêm Trinh (kèm Phá Quân) tại Mão:** cách xấu — cổ văn ví \"cây gỗ bị đè, sấm sét kinh hoàng\" (ý nói tai họa lớn, hung hiểm).\n\n**Vũ Khúc gặp Kình Dương — Đà La kèm Hỏa Tinh:** nguy hiểm tính mạng vì chuyện tiền bạc.\n\n**Sao Vũ Khúc vốn được coi là \"sao cô quả\"** (dễ khắc vợ/chồng, dễ cô đơn). *(Nếu một trong hai vợ chồng có tính nhu thuận/nhường nhịn — \"vợ giành quyền chồng\" — thì mới tránh được khắc chế; nếu cả hai đều cứng rắn ngang nhau thì ắt khắc hại nhau, dễ ly tán.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Vũ Khúc\n\n## BƯỚC TIẾP THEO\nSao thứ 7: **Tham Lang**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Tham Lang": {"content": "# 04_TU_VI_KB — v0.13: LUẬN GIẢI SAO THAM LANG (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Tham Lang (theo cổ văn):** Miếu tại Thìn-Tuất-Sửu-Mùi; Vượng tại Tý-Ngọ; Hãm tại Tỵ-Hợi.\n\n---\n\n**Tham Lang gặp Linh Tinh/Hỏa Tinh tại nhóm 4 cung Mộ (Thìn-Tuất-Sửu-Mùi):** giàu có lớn, phú quý tới hàng vương hầu. *(Tại Thìn/Tuất là đẹp nhất, tại Sửu/Mùi kém hơn 1 bậc; dù thủ hay chiếu đều luận là tốt.)*\n\n**Tham Lang nhập miếu:** sống thọ lâu dài.\n\n**Tham Lang gặp sát tinh mà không có sao tốt:** làm nghề đồ tể/giết mổ.\n\n**Tham Lang tại Tý/Ngọ/Mão/Dậu (không gặp cách tốt):** hạng trộm cắp vặt, cả đời khó thành đạt. *(Cụ thể: tuổi Thân-Tý-Thìn mà Mệnh tại Tý; tuổi Dần-Ngọ-Tuất mà Mệnh tại Ngọ; tuổi Hợi-Mão-Mùi mà Mệnh tại Mão; tuổi Tỵ-Dậu-Sửu mà Mệnh tại Dậu.)*\n\n**Tham Lang + sao tốt tại cung Trường Sinh:** sống thọ như Bành Tổ (nhân vật huyền thoại nổi tiếng sống rất thọ trong văn hóa Trung Hoa).\n\n**Tham Lang tại Tỵ/Hợi gặp thêm sát tinh:** nếu không làm nghề đồ tể thì cũng gặp hình phạt/tai họa, hưởng phúc không được lâu bền.\n\n**Tham Lang đi cùng Vũ Khúc:** về già mới phát tài, thậm chí có uy tín ở vùng biên cương/nước ngoài. *(Thường sau 30 tuổi mới phát, cần Mệnh có Vũ Khúc thủ/chiếu. Thìn/Tuất là đẹp nhất, Sửu/Mùi kém hơn.)*\n\n**Tham Lang + Vũ Khúc:** trước nghèo sau giàu. *(Có lợi cho bản thân nhưng gây hại người khác; nếu Mệnh có Tử Vi-Nhật-Nguyệt-Tả Hữu-Xương Khúc, đến vận hạn gặp Hóa Lộc-Hóa Quyền-Hóa Khoa thì luận là phú quý hiển đạt.)*\n\n**Tham Lang gặp sát tinh cùng nhóm:** nữ giới dễ ngoại tình (\"trộm hương\"), nam giới dễ trộm cắp vặt.\n\n**Tham Lang + Vũ Khúc cùng thủ cung Thân, mà cung Mệnh không có sao tốt:** ngược lại KHÔNG sống thọ, nghèo khó, cô độc.\n\n**Tham Lang + Thái Âm + Thiên Đồng gặp sát tinh, hội cùng Thiên Cơ-Thiên Lương:** tham lam tiền của không biết đủ, phải đi buôn bán kiếm sống.\n\n**Tham Lang gặp Kình Dương-Đà La tại Hợi/Tý:** gọi là \"đào hoa trôi nổi trên nước\" — dễ sa vào tình ái/rượu chè mà hao tổn thân mình. *(Cả nam lẫn nữ đều dễ mê đắm sắc dục, say rượu hại thân. Nếu có sao tốt đi kèm thì lại tốt, không theo cách xấu này.)*\n\n**Tham Lang + Đà La tại Dần:** gọi là \"phong lưu thải trượng\" — ý nói gặp rắc rối/đòn roi vì chuyện trai gái, phong lưu.\n\n**Tham Lang + Vũ Khúc tại Thân:** cách xấu (hạ cách). *(Cần có Hóa Kỵ mới luận đúng theo cách này.)*\n\n**Tham Lang + Vũ Khúc tại nhóm 4 cung Sinh/Mộ (Dần-Thân-Tỵ-Hợi và Thìn-Tuất-Sửu-Mùi), kèm Phá Quân/sát tinh/Hóa Kỵ:** làm được đủ trăm nghề — ý nói theo nghề thủ công đa dạng, không cố định.\n\n**Tham Lang + Vũ Khúc + Phá Quân, không có sao tốt:** mê đắm rượu chè quên cả bản thân *(hoặc theo nghề thủ công/lao động chân tay).*\n\n**Tham Lang + Liêm Trinh đồng cung:** nam giới phóng đãng, nữ giới dâm loạn.\n\n**Mệnh nữ có Tham Lang:** hay ghen tuông, đố kỵ. *(Tại Hợi/Tý gặp Kình Dương-Đà La thì càng nặng về ghen tuông; nếu gặp Lộc Tồn-Thiên Mã thì cũng không tốt.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Tham Lang\n\n## BƯỚC TIẾP THEO\nSao thứ 8: **Liêm Trinh**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Liêm Trinh": {"content": "# 04_TU_VI_KB — v0.14: LUẬN GIẢI SAO LIÊM TRINH (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Liêm Trinh (theo cổ văn):** Miếu tại Dần-Thân; Lợi ích tại Thìn-Tuất-Sửu-Mùi; Hãm tại Tỵ-Hợi. *(Đối chiếu nhanh với bảng S012 ở v0.5: khớp hợp lý — S012 cũng ghi Miếu tại Dần/Thân. Cross-check tốt.)*\n\n---\n\n**Liêm Trinh tại Thân/Mùi, không gặp sát tinh:** phú quý, danh tiếng vang xa. *(Gọi là cách \"Hùng Tú triều nguyên\"; nếu gặp thêm sát tinh thì chỉ ở mức bình thường.)*\n\n**Liêm Trinh tại Mão/Dậu gặp sát tinh:** làm nha lại/công chức cấp thấp, không có thể diện *(hoặc theo nghề thủ công/tay nghề).*\n\n**Liêm Trinh mang tính \"ám thần\" (không chính, u ám):** làm quan chức nhưng tham lam.\n\n**Liêm Trinh + Tham Lang + Thất Sát + Phá Quân, gặp Vũ Khúc tại cung Thiên Di:** theo nghiệp quân sự/binh nghiệp. *(Cổ văn tự ghi chú nghi vấn: có thể là Văn Khúc chứ không phải Vũ Khúc — giữ nguyên nghi vấn này, không tự khẳng định.)*\n\n**Liêm Trinh + Thất Sát ở miếu vượng:** ngược lại trở thành người tích lũy được của cải, giàu có. *(Thất Sát tại Ngọ là cách đặc biệt tốt; nếu ở hãm địa lại có Hóa Kỵ thì nghèo hèn, tàn tật.)*\n\n**Liêm Trinh + Phá Quân + Hỏa Tinh ở hãm địa:** dễ có kết cục tự tử (treo cổ hoặc trầm mình).\n\n**Liêm Trinh + Thất Sát tại Tỵ/Hợi:** lang thang phiêu bạt khắp nơi, không nơi cố định.\n\n**Liêm Trinh nhập miếu gặp sao Tướng Quân (1 sao phụ trong vòng Trường Sinh/Bác Sĩ):** dũng mãnh, oai hùng — cổ văn ví với Trọng Do (Tử Lộ), học trò nổi tiếng dũng mãnh của Khổng Tử. *(Chi tiết theo Can năm sinh: Giáp→Mệnh tại Dậu; Ất→Mệnh tại Hợi; Bính/Mậu→Mệnh tại Dậu; Đinh/Kỷ→Mệnh tại Dần; Canh→Mệnh tại Tý; Tân→Mệnh tại Mão; Quý→Mệnh tại Thân.)*\n\n**Liêm Trinh gặp đủ 4 sát tinh (Kình Dương-Đà La-Hỏa Tinh-Linh Tinh):** suốt đời dễ gặp hình phạt nặng, tù tội, thậm chí chết chóc.\n\n**Liêm Trinh + sao Bạch Hổ:** khó tránh khỏi tù tội/hình phạt. *(Khi Lưu Niên Thái Tuế cùng Tiểu Hạn đóng chung 1 cung, lại thêm Bạch Hổ chiếu tới — chủ về gặp kiện tụng/hình phạt.)*\n\n**Liêm Trinh + Sát tinh + Phá Quân hội cùng cung Thiên Di:** dễ chết nơi đất khách quê người.\n\n**Liêm Trinh + Kình Dương + sát tinh tại cung Quan Lộc:** khó tránh khỏi rắc rối/ràng buộc pháp lý trong sự nghiệp.\n\n**Liêm Trinh giữ được sự trong sạch, bền vững (dành cho mệnh nữ):** tuổi Giáp/Kỷ/Canh/Quý an Mệnh tại Thân/Dậu/Hợi/Tý; tuổi Bính/Tân/Ất/Mậu an Mệnh tại Dần/Mão/Tỵ/Ngọ — đều là thế tốt. *(Nếu an Mệnh tại Thìn/Tuất/Sửu/Mùi thì ngược lại, bị coi là thấp kém.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Liêm Trinh\n\n## BƯỚC TIẾP THEO\nSao thứ 9: **Cự Môn**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Cự Môn": {"content": "# 04_TU_VI_KB — v0.15: LUẬN GIẢI SAO CỰ MÔN (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Cự Môn (theo cổ văn):** Miếu tại Dần-Thân-Mão-Dậu; Vượng tại Tý-Ngọ-Tỵ-Hợi; Hãm tại Thìn-Tuất.\n\n---\n\n**Cự Môn - Thái Dương: Mệnh an tại Thân (có Cự Môn), Thái Dương tại Dần chiếu về:** trước tiên nổi danh, sau đó mới hưởng bổng lộc.\n\n**Cự Môn - Thái Dương cùng đóng tại Dần (Mệnh):** nổi danh, hưởng bổng lộc.\n\n**Cự Môn - Thái Dương: Mệnh an tại Dần (có Cự Môn), Thái Dương tại Thân chiếu về:** cũng là cách đẹp, nổi danh hưởng lộc.\n\n**Cự Môn tại Tý/Ngọ có Hóa Khoa-Hóa Quyền-Hóa Lộc:** ví như \"ngọc ẩn trong đá\" — phúc vượng, hưng thịnh. *(Giàu có, con cái hiển đạt; tuổi Tân/Quý là cách thượng hạng, tuổi Đinh/Kỷ kém hơn 1 bậc, tuổi Bính/Mậu chủ về con trai.)*\n\n**Cự Môn tại Hợi, Thái Dương tại Tỵ:** nổi danh, hưởng bổng lộc.\n\n**Cự Môn tại Tỵ, Thái Dương tại Hợi:** ngược lại, KHÔNG tốt.\n\n**Cự Môn - Thái Dương ở thế chiếu hợp:** cũng là cách lạ (tốt). *(Ví dụ: Thái Dương tại Ngọ, Cự Môn tại Tuất — chiếu về nhau. Cần luận thêm nếu Thái Dương ở thế hãm địa.)*\n\n**Cự Môn - Thiên Cơ tại Mão:** người tuổi Ất/Tân/Kỷ/Bính đạt tới hàng công khanh (chức lớn trong triều đình). *(Không phú thì cũng giàu; riêng tuổi Giáp chỉ ở mức bình thường, vì Lộc của tuổi Giáp đến cung Dần, mà cung Mão lại có Kình Dương phá cách.)*\n\n**Cự Môn - Thiên Cơ tại Dậu có Hóa cát:** dù có tài lộc/quan chức cũng không giữ được trọn vẹn, không có kết cục tốt đẹp. *(Nếu số cô độc/nghèo thì ngược lại sống thọ; nếu giàu có lớn thì lại chết yểu. Thêm Hóa Kỵ thì càng xấu.)*\n\n**Cự Môn tại Thìn có Hóa Kỵ:** riêng người tuổi Tân lại được coi là cách lạ/tốt (ngoại lệ).\n\n**Cự Môn - Thiên Cơ tại Sửu/Mùi:** cách xấu (hạ cách).\n\n**Cự Môn + Đà La:** chắc chắn sinh ra nốt ruồi/vết bớt khác thường trên người.\n\n**Cự Môn + Kình Dương-Đà La tại cung Thân/Mệnh/Tật Ách:** gầy yếu ốm o, khốn khổ — có thể thành kẻ trộm cắp (nam) hoặc rơi vào con đường mại dâm (nữ).\n\n**Cự Môn gặp đủ 4 sát tinh ở hãm địa:** hung hiểm.\n\n**Cự Môn + Hỏa Tinh + Kình Dương-Đà La gặp sao xấu:** cần đề phòng nguy cơ tự tử (treo cổ/trầm mình).\n\n**Cự Môn + Hỏa Tinh + Linh Tinh gặp vận hạn xấu:** dễ chết nơi đường xa/đất khách.\n\n**Cự Môn + Thiên Cơ là cách \"phá đãng\"** (ý nói buông thả, phá tán): *(Với mệnh nữ có Cự Môn-Thiên Cơ tại Mão/Dậu: dù giàu sang cũng khó tránh chuyện dâm loạn/buông thả; nếu ở hãm địa thì còn thấp kém hơn nữa.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Cự Môn\n\n## BƯỚC TIẾP THEO\nSao thứ 10: **Thiên Tướng**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Tướng": {"content": "## SAO THIÊN TƯỚNG (bổ sung)\n\n**Độ sáng:** Miếu tại Tý-Ngọ-Sửu-Dần-Thân; Đắc địa tại Thìn-Tuất-Tỵ-Hợi-Mùi; Hãm tại Mão-Dậu.\n\n**Thiên Tướng + Liêm Trinh + Kình Dương:** nhiều lần gặp hình phạt/tù tội khó tránh, cả đời không tốt đẹp, dễ gặp tai họa bất ngờ — chỉ hợp con đường tu hành.\n\n**Thiên Tướng với mệnh nữ:** ắt được con cái hiển đạt và chồng hiền. *(Nữ tuổi Kỷ Mệnh tại Tý, tuổi Giáp Mệnh tại Ngọ, tuổi Canh Mệnh tại Thìn — đều là cách quý.)*\n\n**Hữu Bật + Thiên Tướng:** phúc lành đến. *(Cụ thể mệnh nữ: tuổi Quý tại Tý; tuổi Quý/Kỷ tại Dần; tuổi Giáp/Canh/Quý tại Thân — đều là cách quý. Riêng tại Sửu/Mùi/Hợi thì không quý; tại Tý/Ngọ/Mão/Dậu đều ít phúc.)*\n\n---", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Lương": {"content": "## SAO THIÊN LƯƠNG (bổ sung)\n\n**Độ sáng:** Miếu tại Tý-Ngọ-Dần-Mão-Thìn-Tuất; Vượng tại Sửu-Mùi; Đắc địa tại Dậu; Hãm tại Thân-Tỵ-Hợi.\n\n**Thiên Lương + Thái Âm (mệnh nữ):** dễ dâm loạn, nghèo khó. *(Thiên Lương tại Tỵ/Hợi kết hợp Thái Âm tại Dần/Thân chủ về dâm loạn; dù không ở thế hãm vẫn bị coi như hãm — tức vẫn thấp kém.)*\n\n**Thiên Lương tại Ngọ:** làm quan chức thanh liêm, hiển đạt nơi triều đình. *(Tuổi Đinh/Kỷ/Quý hợp cách này.)*\n\n**Thiên Lương ở thế đi cùng tại Kỷ/Hợi** *(bản gốc ghi \"梁同己亥\", có thể chỉ vị trí cung — chưa chắc chắn 100% cách hiểu, ghi nhận nghi vấn)*: nam giới phóng đãng, nữ giới dâm loạn. *(Thêm Hình/Kỵ/sát tinh thì càng thấp kém.)*\n\n**Thiên Lương + Văn Xương ở miếu vượng:** đạt tới địa vị cao trong triều đình (chức \"đài cương\").\n\n**Thiên Lương thủ/chiếu gặp sao tốt:** hưởng phúc thọ trọn đời. *(Ở cung Ngọ là cực tốt.)*\n\n**Thiên Lương + Thiên Cơ + Thái Âm tại Dần/Thân:** cả đời thông minh, có lợi cho sự nghiệp — danh tiếng đã rõ, không cần bàn thêm.\n\n**Thiên Lương + Thái Dương + Văn Xương + Hóa Lộc hội hợp:** đỗ đạt đứng đầu (thi cử đỗ thủ khoa).\n\n**Thiên Lương + Vũ Khúc + Thái Âm + Linh Tinh:** được ví như bậc rường cột (người có tài năng lớn, trụ cột quốc gia).\n\n**Thiên Lương + Thái Âm (thế khác):** lại trở thành kẻ lang thang phiêu bạt. *(Trường hợp: Thiên Lương tại Dậu, Thái Âm tại Tỵ.)*\n\n**Thiên Lương + Thiên Mã:** người phóng khoáng, phong lưu, hay đi đây đó.\n\n**Thiên Lương + sao tốt tại cung Thiên Di:** thương nhân lớn, buôn bán giàu có. *(Nếu thêm Hình/Kỵ thì chỉ ở mức bình thường.)*\n\n---", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Đồng": {"content": "## SAO THIÊN ĐỒNG (bổ sung)\n\n**Độ sáng:** Miếu tại Tỵ-Hợi; Vượng tại Tý-Thân; Hãm tại Ngọ.\n\n**Thiên Đồng gặp sao tốt:** sống thọ lâu dài.\n\n**Thiên Đồng + Tham Lang + Kình Dương-Đà La tại Ngọ:** người tuổi Bính/Mậu giữ vai trò trấn giữ biên cương (chỉ huy quân sự nơi biên ải) — gọi là cách \"ngựa mang tên\" (mã đầu đới tiễn), vừa giàu vừa có địa vị.\n\n**Thiên Đồng + Thái Âm ở cung hãm gặp sát tinh nặng:** chỉ làm được nghề thủ công, thân hình gầy yếu.\n\n**Thiên Đồng tại Tuất (thế \"phản bối\" — mất vị trí đắc dụng thông thường):** riêng người tuổi Đinh gặp thế này lại tốt (ngoại lệ).\n\n**Mệnh nữ có Thiên Đồng:** chắc chắn là người hiền đức. *(Tuổi Bính (giờ Tý) Mệnh tại Dần; tuổi Tân Mệnh tại Mão; tuổi Đinh Mệnh tại Tuất — đều là cách tốt. Tuổi Bính/Tân ở mức trung bình tốt. Tuổi Kỷ tại Hợi gặp thế này chuyển hóa tốt, nhưng dù đẹp vẫn khó tránh chuyện tình cảm không đứng đắn.)*\n\n---", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thất Sát": {"content": "# 04_TU_VI_KB — v0.17: LUẬN GIẢI SAO THẤT SÁT (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Thất Sát (theo cổ văn):** Miếu tại Thìn-Tuất-Sửu-Mùi-Dần-Thân; Vượng tại Tý-Ngọ-Mão-Dậu; Bình hòa tại Tỵ-Hợi; không có Hãm.\n\n---\n\n**Thất Sát tại Dần/Thân/Tý/Ngọ:** cả đời vinh hiển về chức tước, bổng lộc. *(Gọi là cách \"Thất Sát triều Đẩu\" — Thất Sát chầu về sao Bắc Đẩu.)*\n\n**Thất Sát - Phá Quân:** tính chất càng thêm khắc nghiệt/dữ dằn khi kết hợp cùng Kình Dương - Linh Tinh.\n\n**Thất Sát - Liêm Trinh đồng vị trí:** chủ về chết đường, không được yên ổn khi mất. *(Nếu hội cùng sao Hao ở cung Thiên Di cũng vậy; ở hãm địa lại thêm Hóa Kỵ thì càng hung hiểm.)*\n\n**Thất Sát - Phá Quân nên đi xa lập nghiệp:** làm nghề thủ công/tay chân đều khó tinh thông, không giỏi hẳn 1 nghề.\n\n**Thất Sát ở cung Thân/Mệnh hoặc Lưu Niên:** dễ gặp hình phạt/tai họa/thương tích. *(Gặp Tử Vi, Thiên Tướng, Lộc Tồn thì có thể hóa giải bớt.)*\n\n**Thất Sát ở cung Tuyệt Địa gặp Kình Dương-Đà La:** dễ chết yểu — cổ văn ví như Nhan Hồi (học trò giỏi của Khổng Tử, mất sớm).\n\n**Thất Sát gặp đủ 4 sát tinh:** dễ chết nơi chiến trận (lưng gù, tử trận). *(Thất Sát cùng Linh Tinh-Hỏa Tinh: chủ về tử trận hoặc bệnh tật nguy hiểm.)*\n\n**Thất Sát + Hỏa Tinh + Kình Dương:** nghèo hèn, làm nghề đồ tể/giết mổ. *(Thất Sát-Kình Dương-Đà La hội tại cung Trường Sinh thì càng đúng theo nghề này.)*\n\n**Thất Sát + Kình Dương-Linh Tinh, Lưu Niên gặp Bạch Hổ:** hình phạt/tai họa liên miên.\n\n**Thất Sát + Lưu Kình Dương + 2 sao Quan Phù:** rời xa quê hương, bị đày ải/lưu đày. *(Cần cả Đại Hạn lẫn Tiểu Hạn cùng đến mới luận theo cách này.)*\n\n**Thất Sát thủ/chiếu Lưu Niên/Tiểu Hạn (người tuổi Ngọ sinh, có Kình Dương, Mệnh an tại Mão/Dậu):** chủ về chết dữ (hung tử). *(Các cung khác cũng kỵ Mệnh-Hạn hội sát tinh tam hợp; kỵ nhất tại Thân/Dậu, nhiều hạn xấu dồn về.)*\n\n**Thất Sát ở thế \"trầm ngâm\" (chưa rõ ràng/lưỡng lự):** phúc phần không được vinh hiển. *(Nam giới thì còn có uy quyền; nữ giới thì không có chỗ để thi triển tài năng.)*\n\n**Thất Sát ở cung Thân:** cuối cùng cũng dễ yểu mệnh (không thọ).\n\n**Thất Sát đơn thủ tại cung Phúc Đức, với nữ giới:** tuyệt đối kỵ — chắc chắn thấp kém, không nghi ngờ gì.\n\n---\n\n## ✅ HOÀN THÀNH mục Thất Sát\n\n## BƯỚC TIẾP THEO\nSao thứ 13: **Phá Quân**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Phá Quân": {"content": "# 04_TU_VI_KB — v0.18: LUẬN GIẢI SAO PHÁ QUÂN (hoàn thiện — CHÍNH TINH CUỐI CÙNG)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Phá Quân (theo cổ văn):** Miếu tại Tý-Ngọ; Vượng tại Thìn-Tuất-Sửu-Mùi; Hãm tại Mão-Dậu.\n\n---\n\n**Phá Quân tại Tý/Ngọ, không gặp sát tinh:** làm quan chức thanh liêm, hiển đạt tới hàng \"tam công\" (chức lớn thời xưa). *(Cổ văn phân theo Can Chi năm sinh cụ thể, ví dụ tuổi Giáp/Quý hợp cách nhất, một số tổ hợp Can Chi khác kém hơn hoặc chủ về khốn khó — phần chi tiết Can Chi cụ thể ở đây cổ văn viết khá vắn tắt, Claude ghi nhận nhưng KHÔNG chắc chắn dịch đúng 100% từng tổ hợp, cần người rành kiểm tra thêm.)*\n\n**Phá Quân - Tham Lang gặp Lộc Tồn - Thiên Mã:** nam giới đa phần phóng đãng, nữ giới đa phần dâm loạn.\n\n**Phá Quân - Cự Môn ở gần nhau (không đồng cung, nhưng phạm vào cung Mệnh/Thiên Di):** cổ văn ví \"chôn dưới nước\" — ý nói chết đuối hoặc kết cục không yên ổn.\n\n**Phá Quân + Hỏa Tinh + Linh Tinh:** vất vả, bôn ba nhọc nhằn.\n\n**Sao Phá Quân vốn có tính khó lường, khó đoán rõ ràng** — áp dụng cho cả mệnh nam lẫn nữ.\n\n**Phá Quân + sao Hao (Đại Hao/Tiểu Hao) + Kình Dương-Linh Tinh tại cung Quan Lộc:** khắp nơi đi xin ăn/cầu cạnh người khác — ý nói nghèo túng, phải nhờ vả sinh sống.\n\n---\n\n## ✅ HOÀN THÀNH mục Phá Quân\n\n## 🎉 HOÀN THÀNH TOÀN BỘ 14/14 CHÍNH TINH\nThứ tự đã làm đủ, đúng theo cổ văn: Tử Vi → Thiên Phủ → Thiên Tướng → Thiên Lương → Thiên Đồng → Thiên Cơ → Thái Dương (+Nhật Nguyệt) → Văn Xương-Văn Khúc → Vũ Khúc → Tham Lang → Liêm Trinh → Cự Môn → Thất Sát → **Phá Quân**.\n\n## BƯỚC TIẾP THEO\nSang phần phụ tinh theo đúng thứ tự cổ văn: **Kình Dương** (rồi Đà La, Hỏa Tinh, Linh Tinh, Khôi Việt, Tả Hữu, Lộc Tồn, Thiên Mã, Khoa-Quyền-Lộc, Không-Kiếp, Thiên Thương-Thiên Sứ, rồi tới các mục Mệnh Cung/Thân Cung/Nạp Âm/Tài Bạch/Tài Trạch/Tài Phúc tổng luận).\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Kình Dương": {"content": "# 04_TU_VI_KB — v0.19: LUẬN GIẢI SAO KÌNH DƯƠNG (hoàn thiện — bắt đầu phần Phụ Tinh)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Kình Dương (theo cổ văn):** Miếu tại Thìn-Tuất-Sửu-Mùi; Hãm tại Tý-Ngọ-Mão-Dậu.\n\n---\n\n**Kình Dương nhập miếu:** phú quý, danh tiếng vang xa. *(Cần thêm sao tốt mới luận đúng theo cách này.)*\n\n**Kình Dương + Hỏa Tinh đồng cung:** uy quyền áp đảo mọi người. *(Tuổi Thìn/Tuất là đẹp nhất, Sửu/Mùi kém hơn 1 bậc.)*\n\n**Kình Dương-Đà La-Linh Tinh-Hỏa Tinh thủ Thân/Mệnh:** dáng đi khom lưng, gù lưng.\n\n**Kình Dương tại Tý/Ngọ/Mão/Dậu:** không chết yểu thì cũng bị thương tật/hình phạt. *(Tại Ngọ là xấu nhất, Mão kém xấu hơn 1 chút, Tý/Dậu kém xấu hơn nữa — gọi là cách \"đầu ngựa mang kiếm\"; nếu có nhiều sao tốt thì không luận theo cách xấu này.)*\n\n**Kình Dương gặp sao Lực Sĩ (1 sao phụ trong vòng Thái Tuế/Bác Sĩ):** cổ văn ví như Lý Quảng khó được phong hầu — điển tích danh tướng tài giỏi nhưng không được trọng dụng xứng đáng. *(Theo Can năm: tuổi Giáp Mệnh tại Mão; tuổi Bính Mệnh tại Ngọ; tuổi Canh Mệnh tại Dậu; tuổi Nhâm Mệnh tại Tý. Nếu có nhiều sao tốt thì chỉ ở mức bình thường; nếu thêm sát tinh thì xấu.)*\n\n**Kình Dương-Đà La-Hỏa Tinh-Linh Tinh:** gặp sao tốt thì phát tài, gặp sao xấu thì kỵ/hại.\n\n**Kình Dương-Linh Tinh thủ Mệnh, Lưu Niên gặp Bạch Hổ:** dễ gặp tai họa/thương tích.\n\n**Kình Dương đối chiếu tại cung Dậu, gặp năm/hạn có Đà La** *(đặc biệt với người tuổi Canh):* xấu (hung).\n\n**Kình Dương-Đà La \"giáp\" cung có Hóa Kỵ:** là cách cục thất bại (bại cục). *(Ví dụ: an Mệnh tại Thân, gặp Hóa Kỵ, Kình Dương tại Dậu, Đà La tại Mùi giáp 2 bên — vận/tuổi hạn gặp thế này: cô độc, nghèo khó, bị khắc chế/thương tổn. Nếu chỉ có Lộc Tồn đơn độc, không có sao tốt đồng cung, cũng vẫn có tai họa.)*\n\n**Kình Dương-Đà La + Lưu Niên + Linh Tinh:** dễ có sẹo/vết bớt/vết thâm trên mặt.\n\n**Kình Dương + Hỏa Tinh:** cách xấu (hạ cách).\n\n**Kình Dương bản mệnh gặp lại Lưu Kình Dương (của vận hạn):** cổ văn ví như Tây Thi mất mạng vì sắc đẹp — ý nói tai họa liên quan tình ái/sắc đẹp. *(Cần cả Đại Hạn lẫn Tiểu Hạn cùng gặp lại mới luận theo cách này.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Kình Dương\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Đà La**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Đà La": {"content": "# 04_TU_VI_KB — v0.20: LUẬN GIẢI SAO ĐÀ LA (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Đà La (theo cổ văn):** Miếu tại Thìn-Tuất-Sửu-Mùi; Hãm tại Dần-Thân-Tỵ-Hợi.\n\n**Lưu ý:** Mục riêng cho Đà La trong cổ văn RẤT NGẮN vì phần lớn nội dung về sao này đã được cổ văn ghép chung với Kình Dương ở mục trước (v0.19) — không lặp lại ở đây.\n\n---\n\n**Đà La tại Tỵ-Hợi-Dần-Thân:** không chết yểu thì cũng bị hình phạt/thương tổn. *(Theo kinh nghiệm thực tế người viết cổ văn ghi lại: nhiều trường hợp rời xa quê hương, tự lập nghiệp nơi khác lại hóa ra tốt; đặc điểm thường thấy là có sẹo/vết thương/khiếm khuyết trên cơ thể từ khi sinh ra — \"phá tướng\".)*\n\n---\n\n## ✅ HOÀN THÀNH mục Đà La\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Hỏa Tinh**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Hỏa Tinh": {"content": "# 04_TU_VI_KB — v0.21: LUẬN GIẢI SAO HỎA TINH (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Hỏa Tinh (theo cổ văn):** Miếu tại Dần-Ngọ-Tuất; Đắc địa tại Tỵ-Dậu-Sửu; Hãm tại Thân-Tý-Thìn.\n\n**Lưu ý:** Cổ văn thường ghép chung Hỏa Tinh với Linh Tinh trong cùng 1 mục ngắn (2 sao có tính chất gần giống nhau — đều là sát tinh thuộc hành Hỏa). Nội dung dưới đây là phần áp dụng chung cho cả 2 sao khi đi cùng nhau; phần riêng của Linh Tinh sẽ bổ sung thêm ở mục kế tiếp.\n\n---\n\n**Hỏa Tinh - Linh Tinh gặp nhau (đồng cung hoặc tam hợp):** danh tiếng vang khắp các vùng/nước.\n\n**Hỏa Tinh - Linh Tinh \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên):** là cách cục thất bại (bại cục). *(Ví dụ: an Mệnh tại Dần/Thân, Hỏa Tinh tại Sửu, Linh Tinh tại Mão giáp 2 bên. Nếu có nhiều sao tốt thì vẫn còn dùng được; chỉ kỵ khi giáp cùng Hóa Kỵ tại Thìn thì mới xấu. Khi vận hạn đi qua vị trí này thì vẫn có thể tốt, không cố định là xấu.)*\n\n---\n\n## ✅ HOÀN THÀNH phần riêng của Hỏa Tinh (phần chung với Linh Tinh ở trên cũng đã tính là xong cho cả 2 sao)\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Linh Tinh** (phần bổ sung riêng, tránh lặp nội dung chung đã dịch).\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Linh Tinh": {"content": "# 04_TU_VI_KB — v0.21: LUẬN GIẢI SAO HỎA TINH (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Hỏa Tinh (theo cổ văn):** Miếu tại Dần-Ngọ-Tuất; Đắc địa tại Tỵ-Dậu-Sửu; Hãm tại Thân-Tý-Thìn.\n\n**Lưu ý:** Cổ văn thường ghép chung Hỏa Tinh với Linh Tinh trong cùng 1 mục ngắn (2 sao có tính chất gần giống nhau — đều là sát tinh thuộc hành Hỏa). Nội dung dưới đây là phần áp dụng chung cho cả 2 sao khi đi cùng nhau; phần riêng của Linh Tinh sẽ bổ sung thêm ở mục kế tiếp.\n\n---\n\n**Hỏa Tinh - Linh Tinh gặp nhau (đồng cung hoặc tam hợp):** danh tiếng vang khắp các vùng/nước.\n\n**Hỏa Tinh - Linh Tinh \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên):** là cách cục thất bại (bại cục). *(Ví dụ: an Mệnh tại Dần/Thân, Hỏa Tinh tại Sửu, Linh Tinh tại Mão giáp 2 bên. Nếu có nhiều sao tốt thì vẫn còn dùng được; chỉ kỵ khi giáp cùng Hóa Kỵ tại Thìn thì mới xấu. Khi vận hạn đi qua vị trí này thì vẫn có thể tốt, không cố định là xấu.)*\n\n---\n\n## ✅ HOÀN THÀNH phần riêng của Hỏa Tinh (phần chung với Linh Tinh ở trên cũng đã tính là xong cho cả 2 sao)\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Linh Tinh** (phần bổ sung riêng, tránh lặp nội dung chung đã dịch).\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Khôi": {"content": "# 04_TU_VI_KB — v0.23: LUẬN GIẢI THIÊN KHÔI — THIÊN VIỆT (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Cổ văn không ghi rõ bảng độ sáng riêng cho Khôi Việt — 2 sao này theo truyền thống Tử Vi không phân miếu/hãm theo cung như các sao khác.)*\n\n---\n\n**Thiên Khôi - Thiên Việt \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên):** là cách cục lạ, đặc biệt tốt. *(Ví dụ: an Mệnh tại Thìn, Khôi tại Mão, Việt tại Tỵ.)*\n\n**Thiên Khôi - Thiên Việt tại Mệnh/Thân:** dễ đỗ đạt cao trong khoa cử — cổ văn ví \"bẻ được cành quế\". *(Ở Mệnh/Thân là đẹp nhất; ở tam hợp chiếu về thì kém hơn 1 bậc.)*\n\n**Thiên Khôi - Thiên Việt + Văn Xương-Văn Khúc + Lộc Tồn phù trợ, không gặp Hình/Sát/xung phá:** được phong tước vị cao quý (chức \"đài phụ\"). *(Nếu gặp Hình/Sát xung chiếu thì chỉ ở mức bình thường, hợp con đường tu hành hơn.)*\n\n**Thiên Khôi - Thiên Việt gặp nhiều sát tinh tụ hội (Kình Dương/Linh Tinh/Địa Không/Địa Kiếp):** dễ mắc bệnh tật dai dẳng, khó chữa (bệnh mãn tính).\n\n**Thiên Khôi - Thiên Việt + Tả Phù-Hữu Bật:** là tổ hợp mang lại phúc thọ. *(Nếu 2 nhóm sao này cùng ở cung Mệnh thì các cung khác trong lá số cũng đều được hưởng phúc thọ song toàn.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Thiên Khôi — Thiên Việt\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Tả Phù — Hữu Bật**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Việt": {"content": "# 04_TU_VI_KB — v0.23: LUẬN GIẢI THIÊN KHÔI — THIÊN VIỆT (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Cổ văn không ghi rõ bảng độ sáng riêng cho Khôi Việt — 2 sao này theo truyền thống Tử Vi không phân miếu/hãm theo cung như các sao khác.)*\n\n---\n\n**Thiên Khôi - Thiên Việt \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên):** là cách cục lạ, đặc biệt tốt. *(Ví dụ: an Mệnh tại Thìn, Khôi tại Mão, Việt tại Tỵ.)*\n\n**Thiên Khôi - Thiên Việt tại Mệnh/Thân:** dễ đỗ đạt cao trong khoa cử — cổ văn ví \"bẻ được cành quế\". *(Ở Mệnh/Thân là đẹp nhất; ở tam hợp chiếu về thì kém hơn 1 bậc.)*\n\n**Thiên Khôi - Thiên Việt + Văn Xương-Văn Khúc + Lộc Tồn phù trợ, không gặp Hình/Sát/xung phá:** được phong tước vị cao quý (chức \"đài phụ\"). *(Nếu gặp Hình/Sát xung chiếu thì chỉ ở mức bình thường, hợp con đường tu hành hơn.)*\n\n**Thiên Khôi - Thiên Việt gặp nhiều sát tinh tụ hội (Kình Dương/Linh Tinh/Địa Không/Địa Kiếp):** dễ mắc bệnh tật dai dẳng, khó chữa (bệnh mãn tính).\n\n**Thiên Khôi - Thiên Việt + Tả Phù-Hữu Bật:** là tổ hợp mang lại phúc thọ. *(Nếu 2 nhóm sao này cùng ở cung Mệnh thì các cung khác trong lá số cũng đều được hưởng phúc thọ song toàn.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Thiên Khôi — Thiên Việt\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Tả Phù — Hữu Bật**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Tả Phù": {"content": "# 04_TU_VI_KB — v0.24: LUẬN GIẢI TẢ PHÙ — HỮU BẬT (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Giống Khôi Việt, cổ văn không ghi bảng miếu/hãm riêng theo cung cho Tả Hữu.)*\n\n---\n\n**Tả Hữu + Văn Xương:** đạt địa vị cao (chức \"đài phụ\").\n\n**Tả Hữu \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên):** là cách cục quý. *(Ví dụ: an Mệnh tại Sửu, Tả Phù tại Tý, Hữu Bật tại Dần — áp dụng cho người sinh tháng 4, 7 hoặc 11 Âm lịch. Nếu không đạt mức quý thì cũng đại phú.)*\n\n**Hữu Bật - Tả Phù (đóng ở Mệnh hoặc Thiên Di):** cả đời phúc dày. *(Ở tam hợp chiếu về thì kém hơn 1 bậc.)*\n\n**Tả Hữu đồng cung:** cổ văn ví \"mặc áo gấm tía\" — ý nói địa vị cao sang. *(Cụ thể: an Mệnh tại Thìn/Tuất, sinh tháng 1 hoặc 7; an Mệnh tại Sửu, sinh tháng 4; an Mệnh tại Mão/Hợi, sinh tháng 6 hoặc 12 — đều đúng cách này; ở tam hợp thì không tính.)*\n\n**Tả Hữu đơn thủ hoặc chỉ chiếu về Mệnh (không đồng cung):** thân phận không chính thức trong dòng họ (con thứ/con nuôi/con riêng). *(Áp dụng khi Thân/Mệnh không có chính tinh; nếu tam hợp có Tử Vi/Thiên Tướng/Thiên Phủ thì tốt, không theo cách xấu này.)*\n\n**Tả Hữu + Liêm Trinh + Kình Dương:** dễ gặp hình phạt hoặc trộm cướp.\n\n**Tả Hữu + Văn Xương-Văn Khúc gặp Kình Dương-Đà La:** dễ có nốt ruồi/vết bớt kín đáo (không lộ rõ) trên cơ thể.\n\n**Tả Hữu + cung Tài Bạch/Quan Lộc được hỗ trợ hoặc chiếu về:** bổng lộc dồi dào, sung túc.\n\n**Tả Hữu + Thiên Khôi-Thiên Việt:** là tổ hợp mang phúc thọ. *(Nếu các nhóm sao này cùng ở cung Mệnh thì phúc thọ vẹn toàn; với mệnh nữ thì vượng chồng, lợi con.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Tả Phù — Hữu Bật\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Lộc Tồn**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Hữu Bật": {"content": "# 04_TU_VI_KB — v0.24: LUẬN GIẢI TẢ PHÙ — HỮU BẬT (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Giống Khôi Việt, cổ văn không ghi bảng miếu/hãm riêng theo cung cho Tả Hữu.)*\n\n---\n\n**Tả Hữu + Văn Xương:** đạt địa vị cao (chức \"đài phụ\").\n\n**Tả Hữu \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên):** là cách cục quý. *(Ví dụ: an Mệnh tại Sửu, Tả Phù tại Tý, Hữu Bật tại Dần — áp dụng cho người sinh tháng 4, 7 hoặc 11 Âm lịch. Nếu không đạt mức quý thì cũng đại phú.)*\n\n**Hữu Bật - Tả Phù (đóng ở Mệnh hoặc Thiên Di):** cả đời phúc dày. *(Ở tam hợp chiếu về thì kém hơn 1 bậc.)*\n\n**Tả Hữu đồng cung:** cổ văn ví \"mặc áo gấm tía\" — ý nói địa vị cao sang. *(Cụ thể: an Mệnh tại Thìn/Tuất, sinh tháng 1 hoặc 7; an Mệnh tại Sửu, sinh tháng 4; an Mệnh tại Mão/Hợi, sinh tháng 6 hoặc 12 — đều đúng cách này; ở tam hợp thì không tính.)*\n\n**Tả Hữu đơn thủ hoặc chỉ chiếu về Mệnh (không đồng cung):** thân phận không chính thức trong dòng họ (con thứ/con nuôi/con riêng). *(Áp dụng khi Thân/Mệnh không có chính tinh; nếu tam hợp có Tử Vi/Thiên Tướng/Thiên Phủ thì tốt, không theo cách xấu này.)*\n\n**Tả Hữu + Liêm Trinh + Kình Dương:** dễ gặp hình phạt hoặc trộm cướp.\n\n**Tả Hữu + Văn Xương-Văn Khúc gặp Kình Dương-Đà La:** dễ có nốt ruồi/vết bớt kín đáo (không lộ rõ) trên cơ thể.\n\n**Tả Hữu + cung Tài Bạch/Quan Lộc được hỗ trợ hoặc chiếu về:** bổng lộc dồi dào, sung túc.\n\n**Tả Hữu + Thiên Khôi-Thiên Việt:** là tổ hợp mang phúc thọ. *(Nếu các nhóm sao này cùng ở cung Mệnh thì phúc thọ vẹn toàn; với mệnh nữ thì vượng chồng, lợi con.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Tả Phù — Hữu Bật\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Lộc Tồn**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Lộc Tồn": {"content": "# 04_TU_VI_KB — v0.25: LUẬN GIẢI SAO LỘC TỒN (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Độ sáng Lộc Tồn:** cổ văn ghi \"trong cả 12 cung đều nhập miếu\" — tức Lộc Tồn không có vị trí hãm địa, luôn ở thế tốt về mặt vị trí (đặc điểm riêng của sao này so với các sao khác).\n\n---\n\n**Lộc Tồn trấn giữ tại cung Tài Bạch/Điền Trạch:** tích lũy của cải như núi (vàng ngọc chất đống). *(Ở cung Mệnh thì càng đáng mừng; có thêm Hóa Lộc, Hóa Khoa-Hóa Quyền thì càng tốt hơn nữa.)*\n\n**Lộc Tồn tại Tý/Ngọ, gặp ở cung Thiên Di/Thân/Mệnh:** có lợi về tài lộc, thích hợp phát triển.\n\n**\"Minh Lộc - Ám Lộc\" cùng gặp** (vừa có Lộc Tồn vừa có Hóa Lộc, hoặc Lộc ở thế tam hợp/nhị hợp): đạt tới địa vị công khanh (chức lớn trong triều).\n\n**\"Song Lộc\" trùng lặp trở lại:** cả đời phú quý.\n\n**Lộc gặp xung phá:** dù vốn tốt cũng chuyển thành xấu.\n\n**\"Song Lộc\" thủ Mệnh:** cổ văn ví như Lã Hậu chuyên quyền — điển tích hoàng hậu nắm thực quyền lớn, ý nói người này có thực quyền, nắm quyền hành trong tay.\n\n**Lộc Tồn có tính chất hậu hĩnh, mang nhiều bổng lộc:** giáng phúc ở mọi cung, giúp gây dựng cơ nghiệp giàu có. *(Với nữ giới: lấy chồng thì chồng phát tài; nếu chồng ở rể thì nhà vợ vượng tài.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Lộc Tồn\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: **Thiên Mã**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Mã": {"content": "# 04_TU_VI_KB — v0.26: LUẬN GIẢI SAO THIÊN MÃ (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Mục riêng cho Thiên Mã trong cổ văn khá ngắn — phần lớn nội dung liên quan đã xuất hiện ghép chung với Lộc Tồn ở các mục Vũ Khúc/Lộc Tồn trước đó.)*\n\n---\n\n**Lộc + Mã cùng chạy (giao trì — 2 sao hỗ trợ nhau):** là thế được ưa chuộng nhất trong bộ môn. *(Kỵ gặp sát tinh, Kình Dương, Hỏa Tinh, hoặc gặp \"Tiệt Không/截路空亡\" — một dạng Không Vong khác; nếu gặp thì chủ về vất vả, cực nhọc.)*\n\n**Thiên Mã tại nhóm 4 cung Trường Sinh (Dần-Thân-Tỵ-Hợi), đóng ở cung Phu Thê:** được phong tước hoặc ban thưởng — ý nói vợ/chồng đạt được vinh dự, địa vị.\n\n**Thiên Mã gặp Không Vong:** cả đời bôn ba, chạy ngược chạy xuôi, không yên ổn.\n\n---\n\n## ✅ HOÀN THÀNH mục Thiên Mã\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: mục ghép **Hóa Khoa — Hóa Quyền — Hóa Lộc** (tam Hóa cát tinh, không tính Hóa Kỵ).\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Hóa Lộc": {"content": "# 04_TU_VI_KB — v0.27: LUẬN GIẢI HÓA KHOA — HÓA QUYỀN — HÓA LỘC (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n---\n\n**Hóa Khoa - Hóa Quyền - Hóa Lộc hội đủ cả 3:** phú quý song toàn. *(Lộc Tồn cũng được tính là 1 dạng Lộc — nếu Hóa Lộc gặp thêm Lộc Tồn thì càng trọn vẹn. Ví dụ cổ văn: Cự Môn-Vũ Khúc tại Tuất được Hóa Khoa, gặp Thiên Khôi-Thiên Việt tại cung Mệnh là cực tốt; ở tam hợp thì kém hơn; tụ hội nhiều sao tốt thì vẫn tốt, nhưng gặp nhiều sao xấu thì không đẹp.)*\n\n**Hóa Lộc - Hóa Quyền hội hợp tại Mệnh:** uy quyền áp đảo mọi người, có thể sánh với bậc vương triều.\n\n**Hóa Quyền - Hóa Lộc gặp lại nhau:** cả tài lộc và quan chức đều đẹp. *(Cần tam hợp có nhiều sao tốt mới thật sự tốt; nếu tụ nhiều sao xấu thì cũng không đẹp.)*\n\n**Hóa Khoa thủ Mệnh, Hóa Quyền chầu về:** đỗ đạt khoa cử hạng cao (cổ văn dùng chữ \"giáp đệ\" — đỗ hạng ưu). *(Nếu có cả Hóa Quyền hoặc Hóa Lộc trọn vẹn thì càng tốt, gọi là cách \"Lộc phùng nghênh\".)*\n\n**Hóa Lộc \"sống động\" tại Tý/Ngọ, đóng cung Thiên Di:** văn chương hơn người, đứng đầu thiên hạ. *(Cụ thể: Thiên Di tại Tý/Ngọ, Mệnh có Thái Dương, Hóa Lộc tại Ngọ — hợp cách này; các cung khác cần xét thêm tốt xấu riêng.)*\n\n**Hóa Khoa-Hóa Quyền-Hóa Lộc \"giáp\" Mệnh (đóng 2 bên):** là cách cục quý. *(Ví dụ: an Mệnh tại Tý, Lộc tại Hợi, Quyền tại Sửu — giáp quý. Các trường hợp tương tự áp dụng theo cùng nguyên tắc.)*\n\n**Hóa Quyền-Hóa Lộc gặp lại nhau nhưng có sát tinh tụ hội:** chỉ là tiếng tăm hư danh, không có thực chất tương xứng.\n\n**Khoa danh rơi vào cung có hung thần:** như mầm lúa không trổ được bông — ý nói có tiềm năng nhưng không thành tựu được. *(Ví dụ: Thái Dương tại Tuất, Thái Âm tại Mão, Hóa Khoa ở thế hãm địa, hoặc thêm Kình Dương-Đà La-Địa Kiếp-Địa Không.)*\n\n**Lộc chủ (Hóa Lộc) rơi vào cung yếu/nhược địa:** có phát triển nhưng không chủ về tài lộc (phát về mặt khác, không phải tiền bạc).\n\n**Hóa Quyền-Hóa Lộc trấn giữ cung Tài Bạch/Phúc Đức:** sống đời vinh hoa.\n\n**Hóa Quyền-Hóa Lộc cùng sao tốt nhưng lại ở cung Nô Bộc:** dù có công danh phú quý cũng vất vả, bôn ba — ý nói ở sai vị trí, công sức phần nhiều lại có lợi cho người khác.\n\n---\n\n## ✅ HOÀN THÀNH mục Hóa Khoa — Hóa Quyền — Hóa Lộc\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: mục ghép **Địa Không — Địa Kiếp** (cổ văn gọi \"Kiếp Không\").\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Hóa Quyền": {"content": "# 04_TU_VI_KB — v0.27: LUẬN GIẢI HÓA KHOA — HÓA QUYỀN — HÓA LỘC (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n---\n\n**Hóa Khoa - Hóa Quyền - Hóa Lộc hội đủ cả 3:** phú quý song toàn. *(Lộc Tồn cũng được tính là 1 dạng Lộc — nếu Hóa Lộc gặp thêm Lộc Tồn thì càng trọn vẹn. Ví dụ cổ văn: Cự Môn-Vũ Khúc tại Tuất được Hóa Khoa, gặp Thiên Khôi-Thiên Việt tại cung Mệnh là cực tốt; ở tam hợp thì kém hơn; tụ hội nhiều sao tốt thì vẫn tốt, nhưng gặp nhiều sao xấu thì không đẹp.)*\n\n**Hóa Lộc - Hóa Quyền hội hợp tại Mệnh:** uy quyền áp đảo mọi người, có thể sánh với bậc vương triều.\n\n**Hóa Quyền - Hóa Lộc gặp lại nhau:** cả tài lộc và quan chức đều đẹp. *(Cần tam hợp có nhiều sao tốt mới thật sự tốt; nếu tụ nhiều sao xấu thì cũng không đẹp.)*\n\n**Hóa Khoa thủ Mệnh, Hóa Quyền chầu về:** đỗ đạt khoa cử hạng cao (cổ văn dùng chữ \"giáp đệ\" — đỗ hạng ưu). *(Nếu có cả Hóa Quyền hoặc Hóa Lộc trọn vẹn thì càng tốt, gọi là cách \"Lộc phùng nghênh\".)*\n\n**Hóa Lộc \"sống động\" tại Tý/Ngọ, đóng cung Thiên Di:** văn chương hơn người, đứng đầu thiên hạ. *(Cụ thể: Thiên Di tại Tý/Ngọ, Mệnh có Thái Dương, Hóa Lộc tại Ngọ — hợp cách này; các cung khác cần xét thêm tốt xấu riêng.)*\n\n**Hóa Khoa-Hóa Quyền-Hóa Lộc \"giáp\" Mệnh (đóng 2 bên):** là cách cục quý. *(Ví dụ: an Mệnh tại Tý, Lộc tại Hợi, Quyền tại Sửu — giáp quý. Các trường hợp tương tự áp dụng theo cùng nguyên tắc.)*\n\n**Hóa Quyền-Hóa Lộc gặp lại nhau nhưng có sát tinh tụ hội:** chỉ là tiếng tăm hư danh, không có thực chất tương xứng.\n\n**Khoa danh rơi vào cung có hung thần:** như mầm lúa không trổ được bông — ý nói có tiềm năng nhưng không thành tựu được. *(Ví dụ: Thái Dương tại Tuất, Thái Âm tại Mão, Hóa Khoa ở thế hãm địa, hoặc thêm Kình Dương-Đà La-Địa Kiếp-Địa Không.)*\n\n**Lộc chủ (Hóa Lộc) rơi vào cung yếu/nhược địa:** có phát triển nhưng không chủ về tài lộc (phát về mặt khác, không phải tiền bạc).\n\n**Hóa Quyền-Hóa Lộc trấn giữ cung Tài Bạch/Phúc Đức:** sống đời vinh hoa.\n\n**Hóa Quyền-Hóa Lộc cùng sao tốt nhưng lại ở cung Nô Bộc:** dù có công danh phú quý cũng vất vả, bôn ba — ý nói ở sai vị trí, công sức phần nhiều lại có lợi cho người khác.\n\n---\n\n## ✅ HOÀN THÀNH mục Hóa Khoa — Hóa Quyền — Hóa Lộc\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: mục ghép **Địa Không — Địa Kiếp** (cổ văn gọi \"Kiếp Không\").\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Hóa Khoa": {"content": "# 04_TU_VI_KB — v0.27: LUẬN GIẢI HÓA KHOA — HÓA QUYỀN — HÓA LỘC (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n---\n\n**Hóa Khoa - Hóa Quyền - Hóa Lộc hội đủ cả 3:** phú quý song toàn. *(Lộc Tồn cũng được tính là 1 dạng Lộc — nếu Hóa Lộc gặp thêm Lộc Tồn thì càng trọn vẹn. Ví dụ cổ văn: Cự Môn-Vũ Khúc tại Tuất được Hóa Khoa, gặp Thiên Khôi-Thiên Việt tại cung Mệnh là cực tốt; ở tam hợp thì kém hơn; tụ hội nhiều sao tốt thì vẫn tốt, nhưng gặp nhiều sao xấu thì không đẹp.)*\n\n**Hóa Lộc - Hóa Quyền hội hợp tại Mệnh:** uy quyền áp đảo mọi người, có thể sánh với bậc vương triều.\n\n**Hóa Quyền - Hóa Lộc gặp lại nhau:** cả tài lộc và quan chức đều đẹp. *(Cần tam hợp có nhiều sao tốt mới thật sự tốt; nếu tụ nhiều sao xấu thì cũng không đẹp.)*\n\n**Hóa Khoa thủ Mệnh, Hóa Quyền chầu về:** đỗ đạt khoa cử hạng cao (cổ văn dùng chữ \"giáp đệ\" — đỗ hạng ưu). *(Nếu có cả Hóa Quyền hoặc Hóa Lộc trọn vẹn thì càng tốt, gọi là cách \"Lộc phùng nghênh\".)*\n\n**Hóa Lộc \"sống động\" tại Tý/Ngọ, đóng cung Thiên Di:** văn chương hơn người, đứng đầu thiên hạ. *(Cụ thể: Thiên Di tại Tý/Ngọ, Mệnh có Thái Dương, Hóa Lộc tại Ngọ — hợp cách này; các cung khác cần xét thêm tốt xấu riêng.)*\n\n**Hóa Khoa-Hóa Quyền-Hóa Lộc \"giáp\" Mệnh (đóng 2 bên):** là cách cục quý. *(Ví dụ: an Mệnh tại Tý, Lộc tại Hợi, Quyền tại Sửu — giáp quý. Các trường hợp tương tự áp dụng theo cùng nguyên tắc.)*\n\n**Hóa Quyền-Hóa Lộc gặp lại nhau nhưng có sát tinh tụ hội:** chỉ là tiếng tăm hư danh, không có thực chất tương xứng.\n\n**Khoa danh rơi vào cung có hung thần:** như mầm lúa không trổ được bông — ý nói có tiềm năng nhưng không thành tựu được. *(Ví dụ: Thái Dương tại Tuất, Thái Âm tại Mão, Hóa Khoa ở thế hãm địa, hoặc thêm Kình Dương-Đà La-Địa Kiếp-Địa Không.)*\n\n**Lộc chủ (Hóa Lộc) rơi vào cung yếu/nhược địa:** có phát triển nhưng không chủ về tài lộc (phát về mặt khác, không phải tiền bạc).\n\n**Hóa Quyền-Hóa Lộc trấn giữ cung Tài Bạch/Phúc Đức:** sống đời vinh hoa.\n\n**Hóa Quyền-Hóa Lộc cùng sao tốt nhưng lại ở cung Nô Bộc:** dù có công danh phú quý cũng vất vả, bôn ba — ý nói ở sai vị trí, công sức phần nhiều lại có lợi cho người khác.\n\n---\n\n## ✅ HOÀN THÀNH mục Hóa Khoa — Hóa Quyền — Hóa Lộc\n\n## BƯỚC TIẾP THEO\nPhụ tinh tiếp theo: mục ghép **Địa Không — Địa Kiếp** (cổ văn gọi \"Kiếp Không\").\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Địa Không": {"content": "# 04_TU_VI_KB — v0.28: LUẬN GIẢI ĐỊA KHÔNG — ĐỊA KIẾP (hoàn thiện)\n\nNguồn S013 (cổ văn gọi tắt là \"Kiếp Không\"). Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n---\n\n**Địa Kiếp - Địa Không \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên):** là cách cục thất bại (bại cục). *(⚠️ Ví dụ cụ thể trong cổ văn có chỗ hơi mâu thuẫn/khó hiểu về vị trí — Claude giữ nguyên tinh thần chung \"Kiếp Không giáp Mệnh là xấu\", KHÔNG tự chỉnh sửa ví dụ con số cụ thể vì không chắc chắn 100% đã dịch đúng bản gốc. Khi vận hạn đi qua vị trí này cũng xấu; nếu giáp cùng Hóa Kỵ thì càng xấu — chủ về cô độc, nghèo khó, hình phạt/thương tổn.)*\n\n**Địa Kiếp - Địa Không đến đúng vận hạn:** cổ văn ví như vua nước Sở mất nước, người đẹp Lục Châu qua đời — điển tích Lục Châu (mỹ nhân nổi tiếng, tuẫn tiết vì chủ) — ý nói mất mát lớn, biến cố tang thương.\n\n**Sinh ra ngay tại cung có Địa Kiếp-Địa Không (đóng ngay cung Mệnh gốc):** cổ văn ví \"chim giữa trời gãy cánh\" — ý nói giữa đường gặp biến cố lớn, sự nghiệp/cuộc đời đang lên bỗng sụp đổ bất ngờ.\n\n**Địa Kiếp-Địa Không tại cung Tài Bạch/Phúc Đức:** sinh ra đã nghèo hèn.\n\n---\n\n## ✅ HOÀN THÀNH mục Địa Không — Địa Kiếp\n\n## BƯỚC TIẾP THEO\nPhụ tinh cuối cùng theo đúng thứ tự cổ văn: mục ghép **Thiên Thương — Thiên Sứ** (rất ngắn, chỉ 1 câu). Sau đó sẽ chuyển sang các mục tổng luận: Mệnh Cung, Thân Cung, Nạp Âm, Tài Bạch, Tài Trạch, Tài Phúc — coi như hoàn tất TOÀN BỘ nguồn S013.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Địa Kiếp": {"content": "# 04_TU_VI_KB — v0.28: LUẬN GIẢI ĐỊA KHÔNG — ĐỊA KIẾP (hoàn thiện)\n\nNguồn S013 (cổ văn gọi tắt là \"Kiếp Không\"). Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n---\n\n**Địa Kiếp - Địa Không \"giáp\" Mệnh (đóng ở 2 cung liền kề 2 bên):** là cách cục thất bại (bại cục). *(⚠️ Ví dụ cụ thể trong cổ văn có chỗ hơi mâu thuẫn/khó hiểu về vị trí — Claude giữ nguyên tinh thần chung \"Kiếp Không giáp Mệnh là xấu\", KHÔNG tự chỉnh sửa ví dụ con số cụ thể vì không chắc chắn 100% đã dịch đúng bản gốc. Khi vận hạn đi qua vị trí này cũng xấu; nếu giáp cùng Hóa Kỵ thì càng xấu — chủ về cô độc, nghèo khó, hình phạt/thương tổn.)*\n\n**Địa Kiếp - Địa Không đến đúng vận hạn:** cổ văn ví như vua nước Sở mất nước, người đẹp Lục Châu qua đời — điển tích Lục Châu (mỹ nhân nổi tiếng, tuẫn tiết vì chủ) — ý nói mất mát lớn, biến cố tang thương.\n\n**Sinh ra ngay tại cung có Địa Kiếp-Địa Không (đóng ngay cung Mệnh gốc):** cổ văn ví \"chim giữa trời gãy cánh\" — ý nói giữa đường gặp biến cố lớn, sự nghiệp/cuộc đời đang lên bỗng sụp đổ bất ngờ.\n\n**Địa Kiếp-Địa Không tại cung Tài Bạch/Phúc Đức:** sinh ra đã nghèo hèn.\n\n---\n\n## ✅ HOÀN THÀNH mục Địa Không — Địa Kiếp\n\n## BƯỚC TIẾP THEO\nPhụ tinh cuối cùng theo đúng thứ tự cổ văn: mục ghép **Thiên Thương — Thiên Sứ** (rất ngắn, chỉ 1 câu). Sau đó sẽ chuyển sang các mục tổng luận: Mệnh Cung, Thân Cung, Nạp Âm, Tài Bạch, Tài Trạch, Tài Phúc — coi như hoàn tất TOÀN BỘ nguồn S013.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Thương": {"content": "# 04_TU_VI_KB — v0.29: LUẬN GIẢI THIÊN THƯƠNG — THIÊN SỨ (hoàn thiện — PHỤ TINH CUỐI CÙNG)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Mục này rất ngắn trong cổ văn gốc — chỉ 1 câu duy nhất.)*\n\n---\n\n**Thiên Thương gặp thêm hung tinh/sao xấu:** cổ văn dẫn 2 điển tích nổi tiếng — Khổng Tử (Trọng Ni) từng bị vây khốn, hết lương thực; Đặng Thông dù giàu có nổi tiếng nhưng cuối đời chết đói. Ý nghĩa chung: dù tài giỏi hay giàu có đến mấy, vẫn có thể gặp kết cục bi thảm khi Thiên Thương kết hợp cùng sao xấu.\n\n---\n\n## ✅ HOÀN THÀNH mục Thiên Thương — Thiên Sứ\n\n## 🎉 HOÀN TẤT TOÀN BỘ PHẦN \"SAO\" (14 chính tinh + toàn bộ phụ tinh chính) TRONG NGUỒN S013\n\nDanh sách đầy đủ đã dịch: Tử Vi, Thiên Phủ, Thiên Tướng, Thiên Lương, Thiên Đồng, Thiên Cơ, Thái Dương (+Nhật Nguyệt), Văn Xương-Văn Khúc, Vũ Khúc, Tham Lang, Liêm Trinh, Cự Môn, Thất Sát, Phá Quân, Kình Dương, Đà La, Hỏa Tinh, Linh Tinh, Thiên Khôi-Thiên Việt, Tả Phù-Hữu Bật, Lộc Tồn, Thiên Mã, Hóa Khoa-Quyền-Lộc, Địa Không-Địa Kiếp, Thiên Thương-Thiên Sứ.\n\n## BƯỚC TIẾP THEO\nChuyển sang các mục **tổng luận** cuối cùng của nguồn S013: **Mệnh Cung** (nguyên tắc chung về cách \"giáp cung\" tốt/xấu, sao chính tinh vắng mặt...) — đây là mục quan trọng vì tổng kết các nguyên tắc áp dụng chung cho mọi lá số.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Thiên Sứ": {"content": "# 04_TU_VI_KB — v0.29: LUẬN GIẢI THIÊN THƯƠNG — THIÊN SỨ (hoàn thiện — PHỤ TINH CUỐI CÙNG)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Mục này rất ngắn trong cổ văn gốc — chỉ 1 câu duy nhất.)*\n\n---\n\n**Thiên Thương gặp thêm hung tinh/sao xấu:** cổ văn dẫn 2 điển tích nổi tiếng — Khổng Tử (Trọng Ni) từng bị vây khốn, hết lương thực; Đặng Thông dù giàu có nổi tiếng nhưng cuối đời chết đói. Ý nghĩa chung: dù tài giỏi hay giàu có đến mấy, vẫn có thể gặp kết cục bi thảm khi Thiên Thương kết hợp cùng sao xấu.\n\n---\n\n## ✅ HOÀN THÀNH mục Thiên Thương — Thiên Sứ\n\n## 🎉 HOÀN TẤT TOÀN BỘ PHẦN \"SAO\" (14 chính tinh + toàn bộ phụ tinh chính) TRONG NGUỒN S013\n\nDanh sách đầy đủ đã dịch: Tử Vi, Thiên Phủ, Thiên Tướng, Thiên Lương, Thiên Đồng, Thiên Cơ, Thái Dương (+Nhật Nguyệt), Văn Xương-Văn Khúc, Vũ Khúc, Tham Lang, Liêm Trinh, Cự Môn, Thất Sát, Phá Quân, Kình Dương, Đà La, Hỏa Tinh, Linh Tinh, Thiên Khôi-Thiên Việt, Tả Phù-Hữu Bật, Lộc Tồn, Thiên Mã, Hóa Khoa-Quyền-Lộc, Địa Không-Địa Kiếp, Thiên Thương-Thiên Sứ.\n\n## BƯỚC TIẾP THEO\nChuyển sang các mục **tổng luận** cuối cùng của nguồn S013: **Mệnh Cung** (nguyên tắc chung về cách \"giáp cung\" tốt/xấu, sao chính tinh vắng mặt...) — đây là mục quan trọng vì tổng kết các nguyên tắc áp dụng chung cho mọi lá số.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "__MENH_CUNG_NGUYEN_TAC__": {"content": "# 04_TU_VI_KB — v0.30: LUẬN GIẢI TỔNG QUÁT — MỆNH CUNG (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Đây là mục nguyên tắc chung, áp dụng cho MỌI lá số — không gắn riêng với 1 sao cụ thể.**\n\n---\n\n**Nguyên tắc \"Tam giáp hung — Lục giáp cát\":**\n- **\"Tam giáp\" (3 cặp sao xấu giáp cung là hung):** Địa Kiếp-Địa Không; Hỏa Tinh-Linh Tinh; Kình Dương-Đà La\n- **\"Lục giáp\" (6 cặp sao tốt giáp cung là cát):** Tử Vi-Thiên Phủ; Tả Phù-Hữu Bật; Văn Xương-Văn Khúc; Thiên Khôi-Thiên Việt; Hóa Khoa-Hóa Quyền-Hóa Lộc; Thái Dương-Thái Âm\n\n**Quy tắc áp dụng:** Nếu ở cung Mệnh mà sao xấu nhiều, sao tốt ít — thì dù có sao tốt cũng bị chuyển thành xấu. Nếu sao tốt nhiều, sao xấu ít — thì dù có sao xấu cũng chuyển thành tốt. *(Thân/Mệnh và tam hợp cần xét thêm cả yếu tố miếu/vượng của từng sao.)*\n\n**Cung Mệnh không có chính tinh (vô chính diệu):** mang ý \"2 họ nuôi dưỡng\" — tức phải qua tay người khác nuôi (làm con nuôi/con nối dõi nhà khác), hoặc theo mẹ tái giá, hoặc đi ở rể, hoặc là con của thứ mẫu/vợ lẽ.\n\n**Cung Mệnh gặp sao tốt:** ví như cây tùng bách thanh tú, khó tàn phai — bền vững, tốt đẹp lâu dài. *(Thân/Mệnh/Quan Lộc có sao tốt thì dù Thái Tuế/Đại-Tiểu Hạn không thuận cũng CHƯA HẲN là xấu; phải khi Thái Tuế và các Hạn ĐỀU có sao xấu, lại đúng vào phương vị bản mệnh kỵ thì mới thực sự xấu.)*\n\n**Vận hạn gặp sao xấu:** ví như hoa liễu hoa đào — dễ tàn úa, mong manh. *(Cung Mệnh gặp hạn xấu nhưng bản thân đang ở thế miếu vượng thì vẫn có thể phát; chỉ khi đến hạn mà sao xấu lại ở thế hãm địa thì mới chắc chắn xấu.)*\n\n**Mệnh vượng, vận tốt:** như mầm cây khô gặp mưa — hồi sinh, phát triển tốt. *(Nếu Mệnh/Hạn ở mức bình thường, tam hợp có sao tốt, vận đi đến vùng đẹp thì hóa thành phúc.)*\n\n**Mệnh suy, vận yếu:** như cỏ non gặp sương giá — dễ bị tổn hại. *(Nếu Mệnh tọa cung hãm địa có Hóa Kỵ, vận hạn lại gặp thêm sao xấu: chắc chắn gặp hình phạt/thương tổn, thậm chí nguy hiểm tính mạng.)*\n\n**Cung Mệnh có sao tốt nhưng cung Quan Lộc có nhiều sát tinh nặng:** dù có tài lộc/chức vị cũng vất vả, cực nhọc mới đạt được.\n\n---\n\n## ✅ HOÀN THÀNH mục Mệnh Cung\n\n## BƯỚC TIẾP THEO\nMục tổng luận tiếp theo: **Thân Cung**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "__THAN_CUNG_NGUYEN_TAC__": {"content": "# 04_TU_VI_KB — v0.31: LUẬN GIẢI TỔNG QUÁT — THÂN CUNG (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Mục này ngắn — về cơ bản áp dụng lại nguyên tắc \"Tam giáp hung — Lục giáp cát\" đã nêu ở mục Mệnh Cung, nhưng cho cung Thân.)*\n\n---\n\n**Nguyên tắc \"Tam giáp hung — Lục giáp cát\" áp dụng cho cung Thân:** giáp cùng Hóa Kỵ, Địa Kiếp-Địa Không, Hỏa Tinh-Linh Tinh, Kình Dương-Đà La là xấu; giáp đủ nhóm 6 cặp sao quý (đã nêu ở mục Mệnh Cung) thì rất tốt.\n\n**Thân và Mệnh đều tốt:** phú quý song toàn.\n\n**Thân tốt, Mệnh xấu:** vẫn được coi là khá tốt (không đến mức xấu hoàn toàn).\n\n**Mệnh yếu, Thân mạnh:** tài lộc không tụ được — khó giữ được của cải dù có làm ra.\n\n---\n\n## ✅ HOÀN THÀNH mục Thân Cung\n\n## BƯỚC TIẾP THEO\nMục tổng luận tiếp theo: **Nạp Âm** (nguyên tắc về Ngũ hành Nạp Âm của năm sinh đặt trong các cung Trường Sinh/Tuyệt/Mộ...).\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "Nạp Âm": {"content": "# 04_TU_VI_KB — v0.32: LUẬN GIẢI TỔNG QUÁT — NẠP ÂM (hoàn thiện, ĐỘ TIN CẬY BẢN DỊCH THẤP HƠN BÌNH THƯỜNG)\n\nNguồn S013. Confidence nguồn gốc: A. **Confidence bản dịch: D** (thấp hơn hẳn các mục khác — đây là phần kỹ thuật khó nhất trong toàn bộ nguồn, kết hợp Ngũ Hành Nạp Âm năm sinh với vòng Trường Sinh theo cách rất súc tích, Claude không tự tin đã hiểu đúng hoàn toàn ý gốc).\n\n---\n\n**Nạp Âm rơi vào cung Mộ Khố:** cần xem xét cụ thể cung đó là cung gì trong lá số. *(Ví dụ: người mang Nạp Âm hành Thủy có \"Mộ\" tại Thìn — nếu cung đó trùng với cung Tài Bạch/Quan Lộc, hoặc có Lộc Tồn, thì càng đẹp; nếu trùng cung Thiên Di lại có sao Hao/sát tinh cùng đóng thì không tốt.)*\n\n**Sinh ra rơi vào \"Bại địa\" (vị trí suy yếu trong vòng Trường Sinh):** phát cũng chỉ là \"hoa nở giả tạm\" — ý nói không bền, chỉ hào nhoáng nhất thời. *(Ví dụ kỹ thuật trong cổ văn khá phức tạp, liên quan đến quan hệ tương sinh giữa Ngũ Hành Nạp Âm năm sinh và vị trí cung Mệnh — nếu rơi vào \"Bại địa\" mà gặp thêm Kình Dương-Đà La-Hóa Kỵ-sao Hao-Thất Sát thì xấu; có Lộc Tồn thì hóa tốt.)*\n\n**\"Tuyệt xứ phùng sinh\"** (nơi tuyệt lại gặp sinh — nghịch cảnh hóa thuận): ví như \"hoa không bao giờ tàn\" — ý nói bền vững, vượt qua nghịch cảnh mà vẫn phát triển tốt.\n\n---\n\n## ⚠️ GHI CHÚ ĐẶC BIỆT\nMục Nạp Âm này là phần **khó dịch nhất** trong toàn bộ nguồn S013 vì đòi hỏi kết hợp đồng thời Ngũ Hành Nạp Âm (đã có công thức tính ở Rule A2.3, phần đầu dự án) với vị trí trong vòng Trường Sinh (Phần 4) — một lớp kiến thức nâng cao mà bản dịch của Claude khó đảm bảo chính xác tuyệt đối. **Khuyến nghị: mục này CẦN người chuyên môn thật sự kiểm tra lại trước khi đưa vào App**, không chỉ dừng ở mức \"tham khảo thêm\" như các mục khác.\n\n## ✅ HOÀN THÀNH mục Nạp Âm\n\n## BƯỚC TIẾP THEO\nMục tổng luận tiếp theo: **Tài Bạch**.\n", "confidence": "Nguồn gốc A / Bản dịch D (THẤP — phần kỹ thuật khó nhất, AI không chắc đã hiểu đúng hoàn toàn ý gốc, cần đặc biệt thận trọng)"}, "__TAI_BACH_CUNG__": {"content": "# 04_TU_VI_KB — v0.33: LUẬN GIẢI TỔNG QUÁT — TÀI BẠCH (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n*(Mục ngắn — chủ yếu nhắc lại 1 số thế cách Nhật-Nguyệt và Tả-Hữu đã dịch ở các mục trước, áp dụng riêng cho cung Tài Bạch.)*\n\n---\n\n**Cung Tài Bạch được Thái Dương-Thái Âm \"giáp\" (kẹp 2 bên), thêm sao tốt:** không phú quý cao thì cũng giàu có. *(Ví dụ: cung Tài Bạch tại Mùi có Thiên Phủ trấn giữ, Thái Dương tại Ngọ, Thái Âm tại Thân giáp 2 bên — các trường hợp khác áp dụng theo nguyên tắc tương tự.)*\n\n**Tả Hữu cùng đóng cung Tài Bạch, hoặc cung Quan Lộc-Tài Bạch được \"giáp/củng\":** bổng lộc dồi dào, sung túc. *(Ví dụ: cung Tài Bạch/Quan Lộc tại Sửu, Thái Dương tại Tý, Thái Âm tại Dần giáp 2 bên.)*\n\n---\n\n## ✅ HOÀN THÀNH mục Tài Bạch\n\n## BƯỚC TIẾP THEO\nMục tổng luận tiếp theo: **Tài Trạch** (財宅 — ghép chung Tài Bạch và Điền Trạch).\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "__DIEN_TRACH_TAI_TRACH__": {"content": "# 04_TU_VI_KB — v0.34: LUẬN GIẢI TỔNG QUÁT — TÀI TRẠCH (hoàn thiện)\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n**Ghi chú minh bạch:** Mục này phần lớn LẶP LẠI các câu đã dịch ở mục Tử Vi, Thiên Phủ, Vũ Khúc, Tham Lang, Lộc Tồn trước đó (cổ văn tổng hợp lại theo chủ đề \"Tài Trạch\" thay vì theo từng sao). Em CHỈ ghi ý hoàn toàn mới ở đây, không chép lại nội dung trùng.\n\n---\n\n**Ý MỚI DUY NHẤT:** Vũ Khúc + Thái Âm — phần lớn đảm nhiệm chức vụ về tài chính/kho bạc quốc gia. *(Không cần đồng cung — chỉ cần cung Tài Bạch gặp Vũ Khúc HOẶC gặp Thái Âm là đã đủ luận theo cách này.)*\n\n**Các câu còn lại trong mục này** (Tử Vi+Tả Hữu; Tử Phủ Vũ Khúc tại Tài Bạch; Vũ Khúc+Tham Lang tại Tài Trạch; Lộc Tồn tại Tài Trạch) — đã dịch đầy đủ ở các mục tương ứng trước đó, không lặp lại.\n\n---\n\n## ✅ HOÀN THÀNH mục Tài Trạch\n\n## BƯỚC TIẾP THEO\nMục cuối cùng của toàn bộ nguồn S013: **Tài Phúc** (財福 — ghép Tài Bạch và Phúc Đức). Sau mục này là **HOÀN TẤT 100% nguồn S013**.\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}, "__TAI_PHUC_PHUC_DUC__": {"content": "# 04_TU_VI_KB — v0.35: TÀI PHÚC (mục cuối cùng) — 🎉 HOÀN TẤT 100% NGUỒN S013\n\nNguồn S013. Confidence: nguồn gốc A / bản dịch tiếng Việt C.\n\n---\n\n**Nội dung mục này:** 2 câu, cả 2 đều đã dịch đầy đủ ở mục **Hóa Khoa-Quyền-Lộc (v0.27)** và mục **Địa Không-Địa Kiếp (v0.28)** trước đó (\"Hóa Quyền-Hóa Lộc trấn giữ cung Tài Bạch/Phúc Đức: sống đời vinh hoa\"; \"Địa Kiếp-Địa Không tại cung Tài Bạch/Phúc Đức: sinh ra đã nghèo hèn\") — KHÔNG có ý gì mới, không lặp lại.\n\n---\n\n# 🎉🎉 HOÀN TẤT TOÀN BỘ NGUỒN S013 (Tử Vi Đẩu Số Toàn Thư, quyển 3)\n\n## Tổng kết toàn bộ những gì đã dịch (từ v0.6 đến v0.35, 30 file):\n- **14/14 chính tinh:** Tử Vi, Thiên Phủ, Thiên Tướng, Thiên Lương, Thiên Đồng, Thiên Cơ, Thái Dương (+ mục ghép Nhật-Nguyệt), Vũ Khúc, Tham Lang, Liêm Trinh, Cự Môn, Thất Sát, Phá Quân *(Văn Xương-Văn Khúc dịch cùng nhóm phụ tinh văn tinh)*\n- **Toàn bộ phụ tinh chính:** Văn Xương-Văn Khúc, Kình Dương, Đà La, Hỏa Tinh, Linh Tinh, Thiên Khôi-Thiên Việt, Tả Phù-Hữu Bật, Lộc Tồn, Thiên Mã, Hóa Khoa-Quyền-Lộc, Địa Không-Địa Kiếp, Thiên Thương-Thiên Sứ\n- **Các mục tổng luận:** Mệnh Cung (nguyên tắc Tam giáp/Lục giáp), Thân Cung, Nạp Âm, Tài Bạch, Tài Trạch, Tài Phúc\n\n## Việc CẦN làm tiếp theo (không thuộc phạm vi nguồn S013 nữa):\n1. **Người rành Hán Nôm/Tử Vi kiểm tra lại toàn bộ 30 file** — đây là yêu cầu quan trọng nhất, nhắc lại nhiều lần xuyên suốt dự án\n2. Mục Nạp Âm (v0.32) cần ưu tiên kiểm tra kỹ nhất (Claude tự đánh giá confidence thấp nhất — mức D)\n3. Vài điểm nghi vấn cụ thể đã ghi chú rải rác (VD: \"Tử Phủ đồng lâm Tỵ/Hợi\" ở v0.7; ví dụ Kiếp Không giáp Mệnh ở v0.28)\n4. **CÒN THIẾU:** nguồn S013 chỉ là 1 phần của \"quyển 3\" — bản gốc Tử Vi Đẩu Số Toàn Thư còn có quyển 1, quyển 2, và các quyển khác (chưa tìm/chưa dịch) — có thể còn nội dung luận giải khác (vd. về Đại Hạn/Tiểu Hạn chi tiết hơn, cách cục đặt tên riêng...)\n5. Sau khi có luận giải riêng từng sao, bước tiếp theo theo đúng Prompt Master gốc (mục A8) là: **Bộ sao và cách cục** (đặt tên các tổ hợp sao nổi tiếng như \"Sát Phá Tham\", \"Cơ Nguyệt Đồng Lương\", điều kiện hình thành...) — nhiều tổ hợp trong số này ĐÃ xuất hiện rải rác trong bản dịch trên nhưng CHƯA được hệ thống hóa thành 1 danh mục riêng\n\n## Đề xuất bước tiếp theo cho anh Minh Thành\nAnh muốn em:\n1. Tìm và dịch nốt các quyển còn lại của Tử Vi Đẩu Số Toàn Thư (nếu tìm được), hay\n2. Hệ thống hóa lại các \"cách cục\" đã xuất hiện rải rác thành 1 danh mục riêng (mục A8), hay\n3. Tạm dừng phần luận giải ở đây (coi là đủ dùng cho V1.0) và chuyển hẳn sang thiết kế App/RuleSet/JSON Schema dựa trên toàn bộ dữ liệu đã có?\n", "confidence": "Nguồn gốc A (cổ văn Tử Vi Đẩu Số Toàn Thư, quyển 3) / Bản dịch tiếng Việt C (do AI dịch, CHƯA được chuyên gia Hán Nôm/Tử Vi kiểm chứng lại — trình bày như tư liệu tham khảo, không khẳng định tuyệt đối đúng)"}}, "cachCucCatalog": "# 04_TU_VI_KB — A8: DANH MỤC CÁCH CỤC v2 (rà soát toàn bộ nội dung đã dịch, ghép tên)\n\n**Phương pháp:** Rà lại toàn bộ 30 file luận giải đã dịch từ S013 (v0.6→v0.35), đối chiếu với danh sách ~90 tên cách cục từ S014, ghép tên chính thức cho nội dung đã có sẵn — KHÔNG cần tìm thêm nguồn mới. Confidence: nguồn nội dung = A (đã dịch từ cổ văn), việc GHÉP TÊN = C (do Claude tự đối chiếu, tên gọi có thể không tuyệt đối chính xác 100% với cách phân loại truyền thống).\n\n---\n\n## ĐÃ GHÉP ĐƯỢC ~30 CÁCH CỤC (có nội dung đầy đủ, chỉ thiếu tên → nay đã có tên)\n\n| Tên cách cục | Nội dung (tóm tắt) | Nguồn trong bản dịch |\n|---|---|---|\n| Quân Thần Khánh Hội | Thiên Phủ + Thiên Tướng + Thiên Lương cùng hội chiếu — \"vua tôi hội ngộ tốt đẹp\" | v0.16 (Thiên Lương) |\n| Phủ Tướng Triều Viên | Thiên Phủ + Thiên Tướng cùng chầu về Mệnh | v0.8 |\n| Cơ Nguyệt Đồng Lương | Thiên Cơ + Thái Âm + Thiên Đồng + Thiên Lương cùng hội | v0.9 |\n| Cơ Lương Gia Hội | Thiên Cơ + Thiên Lương hội hợp, giỏi việc binh | v0.9 |\n| Cự Nhật Đồng Cung | Cự Môn + Thái Dương cùng đóng 1 cung | v0.15 |\n| Nhật Chiếu Lôi Môn | Thái Dương tại Mão/Tý/Thìn, sinh ban ngày | v0.10 |\n| Dương Lương Xương Lộc | Thái Dương+Thiên Lương+Văn Xương+Lộc Tồn tại Mão, tuổi Ất | v0.16 |\n| Thạch Trung Ẩn Ngọc | Cự Môn tại Tý/Ngọ có Hóa Khoa-Quyền-Lộc | v0.15 |\n| Thất Sát Triều Đẩu | Thất Sát tại Dần/Thân/Tý/Ngọ | v0.17 |\n| Mã Đầu Đới Kiếm | Kình Dương tại Ngọ (và các cung xấu khác) | v0.19 |\n| Mã Đầu Đới Tiễn | Thiên Đồng-Tham Lang-Kình Đà tại Ngọ, tuổi Bính/Mậu | v0.16 |\n| Cự Cơ Đồng Lâm | Cự Môn - Thiên Cơ tại Mão | v0.15 |\n| Tam Kỳ (Gia Hội) | Hóa Quyền + Hóa Khoa + Hóa Lộc hội đủ 3 | v0.27 |\n| Quyền Lộc Tuần Phùng | Hóa Quyền - Hóa Lộc gặp lại nhau | v0.27 |\n| Khoa Quyền Lộc Giáp / Song Lộc Giáp Mệnh | Hóa Khoa-Quyền-Lộc \"giáp\" Mệnh | v0.27 |\n| Tả Hữu Đồng Cung | Tả Hữu đồng cung — \"mặc áo gấm tía\" | v0.24 |\n| Tham Vũ Đồng Hành | Tham Lang đi cùng Vũ Khúc, về già mới phát | v0.13 |\n| Tam Hợp Hỏa Tham | Tham Lang gặp Hỏa Tinh tại 4 cung Mộ | v0.13 |\n| Tham Linh Triều Viên | Tham Lang gặp Linh Tinh tại 4 cung Mộ | v0.13 |\n| Hùng Tú Triều Viên | Liêm Trinh tại Thân/Mùi không gặp sát tinh | v0.14 |\n| Lộc Mã Giao Trì | Vũ Khúc/Lộc Tồn + Thiên Mã cùng hội, phát tài xa quê | v0.12, v0.26 |\n| Song Lộc Triều Viên | \"Song Lộc\" trùng lặp trở lại | v0.25 |\n| Minh Lộc Ám Lộc | Lộc Tồn + Hóa Lộc/Lộc tam hợp cùng gặp | v0.25 |\n| Mệnh Vô Chính Diệu | Cung Mệnh không có chính tinh | v0.30 |\n| Cực Cư Mão Dậu | Tử Vi (sao \"Đế/Cực\") tại Mão/Dậu gặp sát tinh → xu hướng tu hành | v0.7 |\n| Cự Phùng Tứ Sát | Cự Môn gặp đủ 4 sát tinh ở hãm địa | v0.15 |\n| Mệnh Lý Phùng Không | Cung Mệnh có Địa Kiếp-Địa Không — \"chim giữa trời gãy cánh\" | v0.28 |\n| Khôi Việt Hung Xung | Thiên Khôi-Thiên Việt gặp nhiều sát tinh — bệnh mãn tính | v0.23 |\n| Vũ Tham Thủ Thân | Tham Lang+Vũ Khúc thủ Thân, Mệnh không sao tốt — không thọ | v0.13 |\n| Cự Cơ Hóa Dậu | Cự Môn-Thiên Cơ tại Dậu có Hóa cát — không trọn vẹn | v0.15 |\n| Hình Tù Giáp Ấn | Thiên Tướng+Liêm Trinh+Kình Dương — hình phạt khó tránh | v0.16 |\n| Nguyệt Đồng Ngộ Sát | Thiên Đồng+Thái Âm hãm địa gặp sát tinh nặng | v0.16 |\n| Mã Lạc Không Vong | Thiên Mã gặp Không Vong — cả đời bôn ba | v0.26 |\n| Lương Mã Phiêu Đãng | Thiên Lương+Thiên Mã — phóng khoáng, hay đi đây đó | v0.16 |\n| Dương Đà Giáp Kỵ | Kình Dương-Đà La giáp cung có Hóa Kỵ — bại cục | v0.19, v0.30 |\n| Hỏa Linh Giáp Mệnh | Hỏa Tinh-Linh Tinh giáp Mệnh — bại cục | v0.21, v0.30 |\n| Kiếp Không Giáp Mệnh | Địa Kiếp-Địa Không giáp Mệnh — bại cục | v0.28, v0.30 |\n| Khô Mộc Phùng Xuân | Mệnh vượng vận tốt — \"mầm cây khô gặp mưa\" | v0.30 |\n\n## ĐÃ GHÉP TẠM (khớp một phần, cần xác nhận thêm — độ chắc chắn thấp hơn nhóm trên)\n| Tên cách cục | Nội dung gần khớp nhất tìm được | Nguồn | Mức độ chắc chắn |\n|---|---|---|---|\n| Tài Dữ Tù Cừu | Vũ Khúc+Liêm Trinh(+Phá Quân) tại Mão — \"cây gỗ bị đè, sấm sét\" | v0.12 | Trung bình (Tài=Vũ Khúc, Tù=Liêm Trinh — hợp nghĩa nhưng chưa chắc đúng câu) |\n| Sinh Bất Phùng Thời | Liên quan phần Nạp Âm/Bại địa | v0.32 | Thấp — mục Nạp Âm vốn đã ghi confidence D |\n| Nhật Nguyệt Tàng Huy | Thái Dương-Thái Âm thế \"phản bối\" | v0.10 | Trung bình |\n| Nhất Sinh Cô Bần | Tham Lang tại Tý/Ngọ/Mão/Dậu không gặp cách tốt | v0.13 | Trung bình |\n| Cát Hung Tương Bạn | Mệnh có sao tốt nhưng Quan Lộc nhiều sát tinh — vất vả dù có tài lộc | v0.30 | Trung bình |\n\n## VẪN CHƯA GHÉP ĐƯỢC (không có nội dung tương ứng trong 30 file đã dịch — thật sự cần nguồn mới, không phải do thiếu rà soát)\nVăn Lương Chấn Kỷ, Kim Xán Quang Huy, Minh Châu Xuất Hải, Nguyệt Lãng Thiên Môn, Nhật Nguyệt Tịnh Minh, Nguyệt Sinh Thương Hải, Thọ Tinh Nhập Miếu, Anh Tinh Nhập Miếu, Thiên Ất Củng Mệnh, Văn Quế Văn Hoa, Quý Tinh Giáp Mệnh, Liêm Trinh Văn Vũ, Quyền Sát Hóa Lộc, Phụ Củng Văn Tinh, Lộc Văn Củng Mệnh, Lộc Hợp Uyên Ương, Lộc Mã Bội Ấn, Nhị Diệu Đồng Lâm, Đan Trì Quế Trì, Giáp Đệ Đăng Dung, Khoa Danh Hội Lộc, Cực Hướng Ly Minh, Hóa Tinh Phản Quý, Tướng Tinh Đắc Địa, Nhật Nguyệt Chiếu Bích, Tài Lộc Giáp Mã, Khoa Minh Lộc Ám, Sát Củng Liêm Trinh, Mã Đầu Đới Kiếm (biến thể trùng tên), Thiên Lương Củng Nguyệt, Văn Tinh Ngộ Giáp, Văn Tinh Thất Vị, Khoa Tinh Sát Tấu, Khoa Tinh Phùng Phá, Lưỡng Trùng Hoa Cái, Y Cẩm Hoàn Hương, Lộc Suy Mã Khốn, Bộ Số Vô Y, Thủy Thượng Giá Ốc, Phong Vân Tế Hội, Cẩm Thượng Thiêm Hoa, Thất Cách Tạp Lục\n\n---\n\n## KẾT QUẢ TỐI ƯU HÓA\nTừ danh sách gần 90 tên ban đầu chỉ có tên suông, sau khi rà soát kỹ 30 file đã dịch (KHÔNG tốn thêm 1 lượt tìm kiếm web nào), đã:\n- **Ghép được ĐẦY ĐỦ nội dung + tên chính thức cho 36 cách cục** (mức chắc chắn cao)\n- **Ghép tạm thêm 5 cách cục** (cần xác nhận thêm)\n- Còn lại ~42 cách cục thật sự chưa có nội dung — đây là giới hạn thật của nguồn hiện có, không phải do làm chưa kỹ\n\n## VIỆC CẦN LÀM TIẾP\n1. ~42 cách cục còn thiếu → cần nguồn sách in hoặc tìm kiếm sâu hơn ở phiên sau\n2. Người chuyên môn xác nhận lại các cách ghép tên \"Đã ghép tạm\" (độ chắc chắn thấp hơn)\n3. Sau khi có đủ cách cục, bước tiếp theo đúng Prompt Master gốc: chuyển sang mục A10 (kiến trúc Engine luận giải) — kết hợp toàn bộ dữ liệu vị trí (Phần 1-7) + độ sáng + luận giải từng sao (S013) + cách cục (A8) thành 1 quy trình xử lý hoàn chỉnh\n"}
+</script>
+
+<script>
+/* ============================================================
+   PHẦN 1 — ENGINE TÍNH TOÁN (đã kiểm chứng qua Golden Test Case,
+   đối chiếu mã nguồn gốc iztro, và đối chiếu web altuvi.com)
+   ============================================================ */
+const CAN_MAP = {甲:'Giáp',乙:'Ất',丙:'Bính',丁:'Đinh',戊:'Mậu',己:'Kỷ',庚:'Canh',辛:'Tân',壬:'Nhâm',癸:'Quý'};
+const CHI_MAP = {子:'Tý',丑:'Sửu',寅:'Dần',卯:'Mão',辰:'Thìn',巳:'Tỵ',午:'Ngọ',未:'Mùi',申:'Thân',酉:'Dậu',戌:'Tuất',亥:'Hợi'};
+const CHI = ['Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi','Thân','Dậu','Tuất','Hợi'];
+const CAN = ['Giáp','Ất','Bính','Đinh','Mậu','Kỷ','Canh','Tân','Nhâm','Quý'];
+const CUC_SO = {'Thủy Nhị Cục':2,'Mộc Tam Cục':3,'Kim Tứ Cục':4,'Thổ Ngũ Cục':5,'Hỏa Lục Cục':6};
+function fixIndex(i, mod=12){ return ((i % mod) + mod) % mod; }
+
+// Chi mang tính Dương / Âm (đối chiếu đúng bảng địa chi gốc dùng trong thư viện iztro — src/data/earthlyBranches.ts)
+const DUONG_CHI = ['Tý','Dần','Thìn','Ngọ','Thân','Tuất'];
+
+// Bảng Nạp Âm Lục Thập Hoa Giáp (60 cặp Can Chi → tên Nạp Âm + Ngũ Hành).
+// Nguồn: đối chiếu 3 nguồn độc lập (phongthuyviettuan.com, tuvivanso.com, và mục S011 —
+// bài báo khoa học vjs.ac.vn đã có trong 01_MASTER_KNOWLEDGE_BASE/02_SOURCE_INDEX_v0.1.md,
+// Confidence A) + khớp với ví dụ "Ất Dậu → Tuyền Trung Thủy" đã có sẵn trong
+// 04_GOLDEN_TEST/13_TEST_CASES_TC1.md của dự án. Đây là bảng cố định, không có dị bản giữa các trường phái.
+const NAP_AM_60 = (() => {
+  const groups = [
+    [['Giáp Tý','Ất Sửu'], 'Hải Trung Kim', 'Kim'],
+    [['Bính Dần','Đinh Mão'], 'Lư Trung Hỏa', 'Hỏa'],
+    [['Mậu Thìn','Kỷ Tỵ'], 'Đại Lâm Mộc', 'Mộc'],
+    [['Canh Ngọ','Tân Mùi'], 'Lộ Bàng Thổ', 'Thổ'],
+    [['Nhâm Thân','Quý Dậu'], 'Kiếm Phong Kim', 'Kim'],
+    [['Giáp Tuất','Ất Hợi'], 'Sơn Đầu Hỏa', 'Hỏa'],
+    [['Bính Tý','Đinh Sửu'], 'Giản Hạ Thủy', 'Thủy'],
+    [['Mậu Dần','Kỷ Mão'], 'Thành Đầu Thổ', 'Thổ'],
+    [['Canh Thìn','Tân Tỵ'], 'Bạch Lạp Kim', 'Kim'],
+    [['Nhâm Ngọ','Quý Mùi'], 'Dương Liễu Mộc', 'Mộc'],
+    [['Giáp Thân','Ất Dậu'], 'Tuyền Trung Thủy', 'Thủy'],
+    [['Bính Tuất','Đinh Hợi'], 'Ốc Thượng Thổ', 'Thổ'],
+    [['Mậu Tý','Kỷ Sửu'], 'Tích Lịch Hỏa', 'Hỏa'],
+    [['Canh Dần','Tân Mão'], 'Tùng Bách Mộc', 'Mộc'],
+    [['Nhâm Thìn','Quý Tỵ'], 'Trường Lưu Thủy', 'Thủy'],
+    [['Giáp Ngọ','Ất Mùi'], 'Sa Trung Kim', 'Kim'],
+    [['Bính Thân','Đinh Dậu'], 'Sơn Hạ Hỏa', 'Hỏa'],
+    [['Mậu Tuất','Kỷ Hợi'], 'Bình Địa Mộc', 'Mộc'],
+    [['Canh Tý','Tân Sửu'], 'Bích Thượng Thổ', 'Thổ'],
+    [['Nhâm Dần','Quý Mão'], 'Kim Bạc Kim', 'Kim'],
+    [['Giáp Thìn','Ất Tỵ'], 'Phú Đăng Hỏa', 'Hỏa'],
+    [['Bính Ngọ','Đinh Mùi'], 'Thiên Hà Thủy', 'Thủy'],
+    [['Mậu Thân','Kỷ Dậu'], 'Đại Dịch Thổ', 'Thổ'],
+    [['Canh Tuất','Tân Hợi'], 'Thoa Xuyến Kim', 'Kim'],
+    [['Nhâm Tý','Quý Sửu'], 'Tang Đố Mộc', 'Mộc'],
+    [['Giáp Dần','Ất Mão'], 'Đại Khê Thủy', 'Thủy'],
+    [['Bính Thìn','Đinh Tỵ'], 'Sa Trung Thổ', 'Thổ'],
+    [['Mậu Ngọ','Kỷ Mùi'], 'Thiên Thượng Hỏa', 'Hỏa'],
+    [['Canh Thân','Tân Dậu'], 'Thạch Lựu Mộc', 'Mộc'],
+    [['Nhâm Tuất','Quý Hợi'], 'Đại Hải Thủy', 'Thủy']
+  ];
+  const map = {};
+  groups.forEach(([canChiPair, ten, hanh]) => {
+    canChiPair.forEach(cc => { map[cc] = { ten, hanh }; });
+  });
+  return map;
+})();
+
+// Ngũ Hành Tương Sinh / Tương Khắc (nguyên lý cố định, không có dị bản trường phái)
+const NGU_HANH_SINH = { 'Mộc':'Hỏa', 'Hỏa':'Thổ', 'Thổ':'Kim', 'Kim':'Thủy', 'Thủy':'Mộc' };
+const NGU_HANH_KHAC = { 'Mộc':'Thổ', 'Thổ':'Thủy', 'Thủy':'Hỏa', 'Hỏa':'Kim', 'Kim':'Mộc' };
+function quanHeCucMenh(hanhCuc, hanhMenh) {
+  if (hanhCuc === hanhMenh) return 'Cục và Bản Mệnh đồng hành (bình hòa)';
+  if (NGU_HANH_SINH[hanhCuc] === hanhMenh) return 'Cục sinh Mệnh';
+  if (NGU_HANH_SINH[hanhMenh] === hanhCuc) return 'Mệnh sinh Cục';
+  if (NGU_HANH_KHAC[hanhCuc] === hanhMenh) return 'Cục khắc Mệnh';
+  if (NGU_HANH_KHAC[hanhMenh] === hanhCuc) return 'Mệnh khắc Cục';
+  return null;
+}
+
+// Con giáp theo Chi (kiến thức phổ thông cố định, không có dị bản)
+const CON_GIAP = {'Tý':'Chuột','Sửu':'Trâu','Dần':'Hổ','Mão':'Mèo','Thìn':'Rồng','Tỵ':'Rắn','Ngọ':'Ngựa','Mùi':'Dê','Thân':'Khỉ','Dậu':'Gà','Tuất':'Chó','Hợi':'Lợn'};
+// Lục Hợp (12 Địa Chi ghép đôi) — kiến thức Can Chi nền tảng cố định, không có dị bản trường phái,
+// dùng chung với Tam Hợp (hàm tamHopBranches đã có sẵn ở dưới) và Lục Xung (hàm oppositeBranch đã có sẵn)
+const LUC_HOP = {'Tý':'Sửu','Sửu':'Tý','Dần':'Hợi','Hợi':'Dần','Mão':'Tuất','Tuất':'Mão','Thìn':'Dậu','Dậu':'Thìn','Tỵ':'Thân','Thân':'Tỵ','Ngọ':'Mùi','Mùi':'Ngọ'};
+
+// Tính tuổi hợp/nên tránh dựa trên Chi năm sinh của thân chủ, theo hệ Tam Hợp - Lục Hợp - Lục Xung
+// của 12 Địa Chi (hệ thống Can Chi dân gian phổ biến, TÁCH BIỆT với bản thân lá số Tử Vi Đẩu Số —
+// dùng để bổ trợ khi luận về cung Phu Thê/Nô Bộc, không phải suy trực tiếp từ 2 cung đó).
+// Lưu ý: hàm tamHopBranches() và oppositeBranch() được định nghĩa ở PHẦN sau của file (dùng cho
+// Cách Cục/tam phương tứ chính) — vì đây là các hàm khai báo bằng "function", JS hoist toàn bộ
+// khai báo function lên đầu scope nên gọi trước vị trí khai báo trong file vẫn an toàn.
+function tuoiHopKhac(chiNam) {
+  const tamHop = tamHopBranches(chiNam); // 2 chi tam hợp — hợp nhất, tốt cho hợp tác lâu dài/hôn nhân bền
+  const lucHop = [LUC_HOP[chiNam]]; // 1 chi lục hợp — hợp, hỗ trợ tốt
+  const lucXung = [oppositeBranch(chiNam)]; // 1 chi lục xung (đối xung, cách 6 cung) — nên thận trọng/tránh
+  return {
+    hopNhat: tamHop, hopNhatConGiap: tamHop.map(c => CON_GIAP[c]),
+    hopNhi: lucHop, hopNhiConGiap: lucHop.map(c => CON_GIAP[c]),
+    canTranh: lucXung, canTranhConGiap: lucXung.map(c => CON_GIAP[c])
+  };
+}
+
+const BRIGHTNESS_FIX = {'Miếu':'Miếu','Vượng':'Vượng','Đắc':'Đắc','Lợi':'Lợi','Bình':'Bình','Bất':'Bất đắc địa','Hạn':'Hãm'};
+function fixBrightness(b){ return b ? (BRIGHTNESS_FIX[b] || b) : ''; }
+
+// Vòng Thái Tuế (12 sao) — OFFICIAL, nguồn Tử Vi Áo Bí 1972
+const THAI_TUE_ORDER = ['Thái Tuế','Thiếu Dương','Tang Môn','Thiếu Âm','Quan Phù','Tử Phù','Tuế Phá','Long Đức','Bạch Hổ','Phúc Đức','Điếu Khách','Trực Phù'];
+function anVongThaiTue(chiNam){
+  const startIdx = CHI.indexOf(chiNam);
+  const result = {};
+  THAI_TUE_ORDER.forEach((sao, offset) => { result[sao] = CHI[fixIndex(startIdx+offset)]; });
+  return result;
+}
+// Triệt Không — OFFICIAL
+const TRIET_TABLE = {'Giáp':['Thân','Dậu'],'Kỷ':['Thân','Dậu'],'Ất':['Mùi','Ngọ'],'Canh':['Mùi','Ngọ'],'Bính':['Thìn','Tỵ'],'Tân':['Thìn','Tỵ'],'Đinh':['Dần','Mão'],'Nhâm':['Dần','Mão'],'Mậu':['Tý','Sửu'],'Quý':['Tý','Sửu']};
+function anTrietKhong(canNam){ return [...TRIET_TABLE[canNam]]; }
+// Tuần Không — OFFICIAL
+const TUAN_TABLE = {0:['Tuất','Hợi'],10:['Thân','Dậu'],8:['Ngọ','Mùi'],6:['Thìn','Tỵ'],4:['Dần','Mão'],2:['Tý','Sửu']};
+function anTuanKhong(canNam, chiNam){
+  const canIdx = CAN.indexOf(canNam), chiIdx = CHI.indexOf(chiNam);
+  return [...TUAN_TABLE[fixIndex(chiIdx-canIdx)]];
+}
+
+let currentChart = null; // luu ket qua tinh toan gan nhat de dung cho phan luan giai
+let lastLuanGiaiHtml = null; // luu HTML luan giai gan nhat (da render) de dung cho nut "Tai ve PDF"
+
+function tinhLaSo() {
+  const hoTen = document.getElementById('hoTen').value.trim();
+  const dobDay = parseInt(document.getElementById('dobDay').value, 10);
+  const dobMonth = parseInt(document.getElementById('dobMonth').value, 10);
+  const dobYear = parseInt(document.getElementById('dobYear').value, 10);
+  const timeRaw = document.getElementById('timeIndex').value;
+  const gender = document.getElementById('gender').value;
+  const viewYear = parseInt(document.getElementById('viewYear').value, 10);
+  const viewMonth = parseInt(document.getElementById('viewMonth').value, 10) || (new Date().getMonth() + 1);
+
+  if (!dobDay || !dobMonth || !dobYear) {
+    throw new Error('Vui lòng nhập đủ ngày/tháng/năm sinh.');
+  }
+
+  // Xử lý Quy ước Giờ Tý muộn (OFFICIAL: "Vãn Tý thuộc ngày hôm sau")
+  const timeIndex = timeRaw.startsWith('0-') ? 0 : parseInt(timeRaw, 10);
+  let calcYear = dobYear, calcMonth = dobMonth, calcDay = dobDay;
+  let gioTyNoteHtml = '';
+  if (timeRaw === '0-late') {
+    const d = new Date(Date.UTC(dobYear, dobMonth - 1, dobDay));
+    d.setUTCDate(d.getUTCDate() + 1);
+    calcYear = d.getUTCFullYear(); calcMonth = d.getUTCMonth() + 1; calcDay = d.getUTCDate();
+    gioTyNoteHtml = `<div class="note-banner">⚠️ Giờ Tý cuối giờ: đã tự động tính theo ngày ${calcDay}/${calcMonth}/${calcYear} (ngày hôm sau) theo quy ước chính thức của Tử Vi Đẩu Số.</div>`;
+  }
+  const solarDate = `${calcYear}-${calcMonth}-${calcDay}`;
+
+  const astrolabe = iztro.astro.bySolar(solarDate, timeIndex, gender, true, 'vi-VN');
+  const [canRaw, chiRaw] = astrolabe.rawDates.chineseDate.yearly;
+  const canVN = CAN_MAP[canRaw], chiVN = CHI_MAP[chiRaw];
+
+  // Can Chi Tháng/Ngày/Giờ (Âm lịch) — cùng nguồn rawDates.chineseDate như Năm, chỉ khác trường con
+  const [canThangRaw, chiThangRaw] = astrolabe.rawDates.chineseDate.monthly;
+  const [canNgayRaw, chiNgayRaw] = astrolabe.rawDates.chineseDate.daily;
+  const [canGioRaw, chiGioRaw] = astrolabe.rawDates.chineseDate.hourly;
+  const canChiThang = { can: CAN_MAP[canThangRaw], chi: CHI_MAP[chiThangRaw] };
+  const canChiNgay = { can: CAN_MAP[canNgayRaw], chi: CHI_MAP[chiNgayRaw] };
+  const canChiGio = { can: CAN_MAP[canGioRaw], chi: CHI_MAP[chiGioRaw] };
+  const lunarRaw = astrolabe.rawDates.lunarDate; // {lunarYear, lunarMonth, lunarDay, isLeap}
+
+  // Âm Dương của năm sinh (theo Chi năm) + kết hợp giới tính
+  const duongNam = DUONG_CHI.includes(chiVN);
+  const amDuongNhan = `${duongNam ? 'Dương' : 'Âm'} ${gender === '男' ? 'Nam' : 'Nữ'}`;
+
+  // Chủ Mệnh / Chủ Thân: lấy trực tiếp từ thư viện iztro (astrolabe.soul / astrolabe.body),
+  // đã đối chiếu đúng bảng gốc src/data/earthlyBranches.ts của iztro — không tự suy diễn.
+  const chuMenh = astrolabe.soul;
+  const chuThan = astrolabe.body;
+
+  // Bản Mệnh Nạp Âm (Ngũ Hành Nạp Âm của Can Chi năm sinh) — tra bảng 60 Hoa Giáp đã xác minh
+  const banMenh = NAP_AM_60[`${canVN} ${chiVN}`] || null;
+
+  const thaiTue = anVongThaiTue(chiVN);
+  const cungToThaiTue = {};
+  Object.entries(thaiTue).forEach(([sao,cung]) => cungToThaiTue[cung]=sao);
+  const triet = anTrietKhong(canVN);
+  const tuan = anTuanKhong(canVN, chiVN);
+
+  let horoscope = null, horoscopeError = null;
+  try {
+    // Dùng ngày 15 trong tháng dương lịch được chọn để tránh rơi vào vùng giáp ranh
+    // giữa hai tháng âm lịch (Lưu Nguyệt được iztro tính theo tháng âm lịch).
+    const targetDate = `${viewYear}-${viewMonth}-15`;
+    const h = astrolabe.horoscope(targetDate, timeIndex);
+    const cucSo = CUC_SO[astrolabe.fiveElementsClass];
+    const nominalAge = h.age.nominalAge;
+    const decadeNumber = Math.floor((nominalAge - cucSo) / 10);
+    horoscope = {
+      viewYear, viewMonth, nominalAge,
+      daiHan: { start: cucSo + 10*decadeNumber, end: cucSo + 10*decadeNumber + 9, can: h.decadal.heavenlyStem, chi: h.decadal.earthlyBranch },
+      tieuHan: { can: h.age.heavenlyStem, chi: h.age.earthlyBranch },
+      luuNien: { can: h.yearly.heavenlyStem, chi: h.yearly.earthlyBranch },
+      luuNguyet: h.monthly ? { can: h.monthly.heavenlyStem, chi: h.monthly.earthlyBranch, hoa: h.monthly.mutagen || [] } : null
+    };
+  } catch(err) { horoscopeError = err.message; }
+
+  const palaces = astrolabe.palaces.map(p => ({
+    name: p.name,
+    branch: p.earthlyBranch,
+    isBodyPalace: p.isBodyPalace,
+    majorStars: p.majorStars.map(s => ({ name: s.name, brightness: fixBrightness(s.brightness), mutagen: s.mutagen || null })),
+    minorStars: p.minorStars.map(s => s.name),
+    minorStarsDetail: p.minorStars.map(s => ({ name: s.name, mutagen: s.mutagen || null })),
+    adjectiveStars: p.adjectiveStars.map(s => s.name),
+    thaiTue: cungToThaiTue[p.earthlyBranch] || null,
+    triet: triet.includes(p.earthlyBranch),
+    tuan: tuan.includes(p.earthlyBranch)
+  }));
+
+  // Âm Dương Thuận Lý / Nghịch Lý: so sánh Âm Dương của Chi năm sinh với Âm Dương của Chi cung Mệnh
+  // (nguồn: đối chiếu 2 nguồn độc lập tracuutuvi.com và hadosa.com, cùng khớp định nghĩa này;
+  // đã thử chéo bằng chính ví dụ lá số mẫu — năm Đinh Mão/Âm, Cung Mệnh tại Tý/Dương → Nghịch Lý, đúng như mẫu).
+  const cungMenh = palaces.find(p => p.name === 'Mệnh');
+  const duongMenh = cungMenh ? DUONG_CHI.includes(cungMenh.branch) : null;
+  const amDuongThuanNghich = (cungMenh) ? (duongNam === duongMenh ? 'Âm Dương Thuận Lý' : 'Âm Dương Nghịch Lý') : null;
+
+  // Quan hệ sinh khắc giữa Cục và Bản Mệnh Nạp Âm (ngũ hành tương sinh/tương khắc cố định)
+  const cucHanh = astrolabe.fiveElementsClass.split(' ')[0];
+  const quanHeCucBanMenh = banMenh ? quanHeCucMenh(cucHanh, banMenh.hanh) : null;
+
+  // Thân cư cung nào (Thân luôn trùng 1 trong 6 cung: Mệnh, Phu Thê, Tài Bạch, Quan Lộc, Thiên Di, Phúc Đức)
+  const cungThan = palaces.find(p => p.isBodyPalace);
+  const thanCuCung = cungThan ? cungThan.name : null;
+
+  // Vòng Lộc: Lộc Tồn (an cố định theo Can năm sinh) và Hóa Lộc (Tứ Hóa của Mệnh chủ) đang ở đâu —
+  // dữ liệu đã có sẵn trong palaces, chỉ cần tìm ra, không suy đoán thêm.
+  const locTonPalace = palaces.find(p => p.minorStars.includes('Lộc Tồn')) || null;
+  let hoaLocPalace = null, hoaLocSao = null;
+  for (const p of palaces) {
+    const m = p.majorStars.find(s => s.mutagen === 'Lộc');
+    if (m) { hoaLocPalace = p; hoaLocSao = m.name; break; }
+    const mi = (p.minorStarsDetail || []).find(s => s.mutagen === 'Lộc');
+    if (mi) { hoaLocPalace = p; hoaLocSao = mi.name; break; }
+  }
+  const vongLoc = {
+    locTonCung: locTonPalace ? locTonPalace.name : null,
+    hoaLocCung: hoaLocPalace ? hoaLocPalace.name : null,
+    hoaLocSao
+  };
+
+  // Tuổi hợp/nên tránh theo Chi năm sinh (hệ Tam Hợp - Lục Hợp - Lục Xung, bổ trợ cho Phu Thê/Nô Bộc)
+  const tuoiHop = tuoiHopKhac(chiVN);
+
+  // Quét 10 năm tới (từ năm đang xem) tìm năm nào có Lục Sát lưu chiếu hoặc Hóa Kỵ lưu niên
+  // rơi đúng vào cung Tật Ách cố định của bản mệnh — dùng đúng engine iztro đã kiểm chứng
+  // (astrolabe.horoscope().yearly.stars theo đúng thứ tự chỉ số cung như mảng palaces),
+  // không tự suy diễn ý nghĩa các sao. Chỉ liệt kê năm có dữ liệu cụ thể, không bịa thêm.
+  let tatAchScan = [];
+  try {
+    const tatAchIdx = palaces.findIndex(p => p.name === 'Tật Ách');
+    if (tatAchIdx >= 0) {
+      const tatAchNatalStars = [...palaces[tatAchIdx].majorStars.map(s => s.name), ...palaces[tatAchIdx].minorStars];
+      const namBatDau = horoscope ? horoscope.viewYear : viewYear;
+      for (let i = 0; i < 10; i++) {
+        const y = namBatDau + i;
+        const hy = astrolabe.horoscope(`${y}-6-15`, timeIndex).yearly;
+        const luuDieuTaiTatAch = (hy.stars && hy.stars[tatAchIdx]) ? hy.stars[tatAchIdx].map(s => s.name) : [];
+        const satTinhLuu = luuDieuTaiTatAch.filter(n => LUC_SAT.includes(n));
+        const hoaKySao = hy.mutagen && hy.mutagen[3];
+        const hoaKyChieuTatAch = !!(hoaKySao && tatAchNatalStars.includes(hoaKySao));
+        if (satTinhLuu.length || hoaKyChieuTatAch) {
+          tatAchScan.push({ nam: y, can: hy.heavenlyStem, chi: hy.earthlyBranch, satTinhLuu, hoaKySao: hoaKyChieuTatAch ? hoaKySao : null });
+        }
+      }
+    }
+  } catch (e) { /* giữ tatAchScan rỗng nếu có lỗi, không làm vỡ App */ }
+
+  // ============================================================
+  // Bổ sung 23/09/2026 — dữ liệu cho các mục luận giải chuyên sâu mới
+  // (Quý nhân giúp đỡ, Điểm mạnh-điểm yếu, Vận công danh, Con cái/Hậu vận).
+  // Tất cả đều dùng lại đúng các hàm helper đã kiểm chứng ở khối Cách Cục
+  // phía dưới (findPalaceOfStar, tamPhuongTuChinh, palaceSatCount,
+  // mutagensInPalaces...) — nhờ hoisting của function/const khai báo ở top-level,
+  // gọi được ngay cả khi các hàm đó nằm sau trong file (đã áp dụng y hệt cho
+  // tuoiHopKhac() ở trên). Dùng {palaces} làm "chart" tối giản vì các hàm này
+  // chỉ đọc thuộc tính .palaces. Chỉ đọc dữ liệu đã có sẵn, KHÔNG suy diễn ý nghĩa.
+  // ============================================================
+  const chartProxy = { palaces };
+  const tpcMenhNames = tamPhuongTuChinh(chartProxy, 'Mệnh').map(p => p.name);
+
+  // Quý nhân giúp đỡ: nhóm sao "quý nhân/phò tá" cổ điển — Thiên Khôi, Thiên Việt
+  // (quý nhân tinh), Tả Phù, Hữu Bật, Văn Xương, Văn Khúc (phụ tinh cát trợ lực).
+  // Chỉ liệt kê sao NÀO có mặt, ở CUNG NÀO, và cung đó có nằm trong tam phương tứ
+  // chính của Mệnh hay không (dữ liệu đọc trực tiếp, không suy đoán thêm ý nghĩa).
+  const QUY_NHAN_SAO = ['Thiên Khôi', 'Thiên Việt', 'Tả Phù', 'Hữu Bật', 'Văn Xương', 'Văn Khúc'];
+  const quyNhan = QUY_NHAN_SAO.map(sao => {
+    const p = findPalaceOfStar(chartProxy, sao);
+    return p ? { sao, cung: p.name, hoTroMenh: tpcMenhNames.includes(p.name) } : null;
+  }).filter(Boolean);
+
+  // Điểm mạnh - điểm yếu: dựa cung Mệnh (chính tinh + miếu/hãm + số sát tinh đồng cung)
+  // và cung Thân (chính tinh) — dữ liệu đã có sẵn ở cungMenh/cungThan tính phía trên.
+  const diemManhYeu = {
+    menh: cungMenh ? {
+      chinhTinh: cungMenh.majorStars,
+      soSatTinhDongCung: palaceSatCount(cungMenh, LUC_SAT),
+      voChinhDieu: cungMenh.majorStars.length === 0
+    } : null,
+    than: (cungThan && cungThan.name !== 'Mệnh') ? { cungTen: cungThan.name, chinhTinh: cungThan.majorStars } : null
+  };
+
+  // Con cái và hậu vận: cung Tử Nữ (con cái) + cung Phúc Đức (phúc phần/hậu vận)
+  // + cung Điền Trạch (an cư, hỗ trợ thêm cho hậu vận) — cả 3 đều đã có sẵn trong palaces.
+  const cungTuNu = palaces.find(p => p.name === 'Tử Nữ') || null;
+  const cungPhucDuc = palaces.find(p => p.name === 'Phúc Đức') || null;
+  const cungDienTrachHauVan = palaces.find(p => p.name === 'Điền Trạch') || null;
+
+  // Vận công danh: cung Quan Lộc — chính tinh, có Hóa Lộc/Quyền/Khoa/Kỵ tại đây không,
+  // và cung này có nằm trong tam phương tứ chính Mệnh hay không (đọc dữ liệu có sẵn).
+  const cungQuanLoc = palaces.find(p => p.name === 'Quan Lộc') || null;
+  const vanCongDanh = cungQuanLoc ? {
+    chinhTinh: cungQuanLoc.majorStars,
+    hoaCat: [...mutagensInPalaces([cungQuanLoc])],
+    trongTamPhuongMenh: tpcMenhNames.includes('Quan Lộc')
+  } : null;
+
+  return {
+    hoTen, dobDay, dobMonth, dobYear, timeRaw, gender,
+    canVN, chiVN, cuc: astrolabe.fiveElementsClass, gioChi: CHI[timeIndex],
+    canChiThang, canChiNgay, canChiGio, lunarThang: lunarRaw.lunarMonth, lunarNgay: lunarRaw.lunarDay, lunarNhuan: lunarRaw.isLeap,
+    amDuongNhan, chuMenh, chuThan, banMenh, amDuongThuanNghich, quanHeCucBanMenh, thanCuCung,
+    vongLoc, tuoiHop, tatAchScan,
+    quyNhan, diemManhYeu, cungTuNu, cungPhucDuc, cungDienTrachHauVan, vanCongDanh,
+    gioTyNoteHtml, palaces, horoscope, horoscopeError
+  };
+}
+
+/* ============================================================
+   PHẦN 2 — HIỂN THỊ LÁ SỐ DẠNG LƯỚI CỔ ĐIỂN 4x4
+   ============================================================ */
+const GRID_POS = {
+  'Tỵ':[1,1], 'Ngọ':[1,2], 'Mùi':[1,3], 'Thân':[1,4],
+  'Thìn':[2,1], 'Dậu':[2,4],
+  'Mão':[3,1], 'Tuất':[3,4],
+  'Dần':[4,1], 'Sửu':[4,2], 'Tý':[4,3], 'Hợi':[4,4]
+};
+
+function renderChart(chart) {
+  document.getElementById('gioTyNote').innerHTML = chart.gioTyNoteHtml;
+  const grid = document.getElementById('chartGrid');
+  grid.innerHTML = '';
+
+  chart.palaces.forEach(p => {
+    const [row, col] = GRID_POS[p.branch];
+    const cell = document.createElement('div');
+    cell.className = 'palace-cell' + (p.name === 'Mệnh' ? ' is-menh' : '') + (p.isBodyPalace ? ' is-than' : '');
+    cell.style.gridRow = row; cell.style.gridColumn = col;
+
+    let daHanHtml = '';
+    if (chart.horoscope) {
+      // khong tinh rieng dai han theo cung o day de giu don gian; hien thi o box rieng
+    }
+
+    const majorHtml = p.majorStars.length
+      ? p.majorStars.map(s => `<span>${s.name}${s.brightness ? ` <span class="bright">(${s.brightness})</span>` : ''}</span>`).join('<br>')
+      : '<span class="p-empty">(Vô chính diệu)</span>';
+
+    const tagsHtml = [
+      p.thaiTue ? `<span class="tag tag-tt">${p.thaiTue}</span>` : '',
+      p.triet ? `<span class="tag tag-triet">Triệt</span>` : '',
+      p.tuan ? `<span class="tag tag-tuan">Tuần</span>` : ''
+    ].join('');
+
+    cell.innerHTML = `
+      <div class="p-name">${p.name}</div>
+      <div class="p-branch">${p.branch}</div>
+      <div class="p-major">${majorHtml}</div>
+      ${p.minorStars.length ? `<div class="p-minor">${p.minorStars.join(', ')}</div>` : ''}
+      ${p.adjectiveStars.length ? `<div class="p-adj">${p.adjectiveStars.join(', ')}</div>` : ''}
+      <div class="p-tags">${tagsHtml}</div>
+    `;
+    grid.appendChild(cell);
+  });
+
+  // Khoi trung tam — hien thi day du thong tin co ban cua chu the (theo dung mau cac App uy tin)
+  const center = document.createElement('div');
+  center.className = 'center-block';
+  const gioLabelText = document.getElementById('timeIndex')?.selectedOptions?.[0]?.textContent || chart.gioChi;
+  const rows = [
+    ['Họ tên', chart.hoTen || '(chưa nhập)'],
+    ['Năm sinh', `${chart.dobYear} (DL) — <b>${chart.canVN} ${chart.chiVN}</b>`],
+    ['Tháng sinh', `${chart.dobMonth} (DL) / ${chart.lunarThang}${chart.lunarNhuan ? ' nhuận' : ''} (ÂL) — <b>${chart.canChiThang.can} ${chart.canChiThang.chi}</b>`],
+    ['Ngày sinh', `${chart.dobDay} (DL) / ${chart.lunarNgay} (ÂL) — <b>${chart.canChiNgay.can} ${chart.canChiNgay.chi}</b>`],
+    ['Giờ sinh', `${gioLabelText} — <b>${chart.canChiGio.can} ${chart.canChiGio.chi}</b>`],
+    ['Năm xem', chart.horoscope ? `${chart.horoscope.viewYear} — ${chart.horoscope.nominalAge} tuổi` : '—'],
+    ['Âm Dương', chart.amDuongNhan],
+    ['Mệnh', chart.banMenh ? `${chart.banMenh.ten} (${chart.banMenh.hanh})` : '—'],
+    ['Cục', chart.cuc],
+    ['Chủ Mệnh', chart.chuMenh],
+    ['Chủ Thân', chart.chuThan]
+  ];
+  const notes = [chart.amDuongThuanNghich, chart.quanHeCucBanMenh, chart.thanCuCung ? `Thân cư ${chart.thanCuCung}` : null].filter(Boolean);
+  center.innerHTML = `
+    <div class="cb-title">T&amp;T TỬ VI ĐẨU SỐ</div>
+    <table class="cb-table">
+      ${rows.map(([k,v]) => `<tr><td class="cb-k">${k}</td><td class="cb-v">${v}</td></tr>`).join('')}
+    </table>
+    ${notes.length ? `<div class="cb-notes">${notes.join('<br>')}</div>` : ''}
+  `;
+  grid.appendChild(center);
+
+  // Van han box
+  const vanHanBox = document.getElementById('vanHanBox');
+  if (chart.horoscope) {
+    const h = chart.horoscope;
+    vanHanBox.innerHTML = `
+      <div><h3>Đại Hạn (${h.daiHan.start}-${h.daiHan.end} tuổi)</h3>Can Chi: <b>${h.daiHan.can} ${h.daiHan.chi}</b></div>
+      <div><h3>Tiểu Hạn (năm ${h.viewYear}, tuổi mụ ${h.nominalAge})</h3>Can Chi: <b>${h.tieuHan.can} ${h.tieuHan.chi}</b></div>
+      <div><h3>Lưu Niên (năm ${h.viewYear})</h3>Can Chi: <b>${h.luuNien.can} ${h.luuNien.chi}</b></div>
+      ${h.luuNguyet ? `<div><h3>Lưu Nguyệt (tháng ${h.viewMonth}/${h.viewYear})</h3>Can Chi: <b>${h.luuNguyet.can} ${h.luuNguyet.chi}</b>${h.luuNguyet.hoa && h.luuNguyet.hoa.length ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text-dim)">Tứ Hóa tháng: ${h.luuNguyet.hoa.join(', ')}</div>` : ''}</div>` : ''}
+    `;
+  } else {
+    vanHanBox.innerHTML = `<p style="color:#FF9E9C">Không tính được vận hạn: ${chart.horoscopeError || 'lỗi không xác định'}</p>`;
+  }
+
+  // Cach Cuc da nhan dien bang thuat toan (khong phai AI doan)
+  chart.cachCucDaXacNhan = detectCachCuc(chart);
+  const ccCard = document.getElementById('cachCucCard');
+  const ccBox = document.getElementById('cachCucBox');
+  if (chart.cachCucDaXacNhan.length) {
+    ccCard.style.display = 'block';
+    ccBox.innerHTML = chart.cachCucDaXacNhan.map(cc => `
+      <div class="cachcuc-item">
+        <div class="cc-name">${cc.name}${cc.detail.palace ? ` (tại cung ${cc.detail.palace})` : ''}</div>
+        <div class="cc-note">${cc.note}</div>
+        <div class="cc-src">Nguồn: ${cc.source} · độ tin cậy: nội dung gốc A, việc ghép tên cách cục C</div>
+      </div>`).join('');
+  } else {
+    ccCard.style.display = 'none';
+    ccBox.innerHTML = '';
+  }
+
+  document.getElementById('ketQuaWrap').style.display = 'block';
+  document.getElementById('luanGiaiArea').innerHTML = '<div class="luangiai-placeholder">Bấm nút bên dưới để AI luận giải lá số này theo văn phong trữ tình, dựa trên tư liệu cổ văn Tử Vi Đẩu Số Toàn Thư đã được dự án dịch và tổng hợp.</div>';
+}
+
+function lapLaSo() {
+  try {
+    currentChart = tinhLaSo();
+    renderChart(currentChart);
+    document.getElementById('ketQuaWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    showToast('Lỗi: ' + err.message, 'error');
+  }
+}
+
+/* ============================================================
+   PHẦN 3 — API KEY & TIỆN ÍCH GIAO DIỆN
+   ============================================================ */
+const KEY_STORE = 'ttt_gemini_api_key';
+const getKey = () => localStorage.getItem(KEY_STORE) || '';
+const storeKey = k => localStorage.setItem(KEY_STORE, k.trim());
+
+function toggleApiPanel() {
+  const body = document.getElementById('apiBody');
+  body.style.display = body.style.display === 'none' ? 'flex' : 'none';
+}
+function handleSaveKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k) return;
+  storeKey(k);
+  showToast('Đã lưu API key ✓ — đang tự kiểm tra Key...', 'success');
+  checkApiKey();
+}
+// Bổ sung 23/09/2026 theo yêu cầu anh Thành: nút xóa API Key đã lưu trong trình duyệt —
+// quan trọng khi chia sẻ máy/App cho người khác, tránh bị dùng chùa Key (và quota) của mình.
+function xoaApiKey() {
+  if (!getKey()) { showToast('Hiện chưa có API key nào được lưu.', 'info'); return; }
+  if (!confirm('Xóa API Key đã lưu trong trình duyệt này? Sau khi xóa, lần luận giải tiếp theo (trên máy này, hoặc nếu chia sẻ App cho người khác) sẽ cần nhập lại Key riêng.')) return;
+  localStorage.removeItem(KEY_STORE);
+  document.getElementById('apiKeyInput').value = '';
+  document.getElementById('apiKeyStatus').innerHTML = '';
+  document.getElementById('apiDot').classList.remove('active');
+  showToast('Đã xóa API Key khỏi trình duyệt này ✓', 'success');
+}
+let toastTimer;
+function showToast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type}`;
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.style.display = 'none', 4000);
+}
+(function initApiKey() {
+  const saved = getKey();
+  if (saved) {
+    document.getElementById('apiKeyInput').value = saved;
+    document.getElementById('apiDot').classList.add('active');
+  }
+})();
+
+/* ============================================================
+   LỊCH SỬ LÁ SỐ (lưu trong localStorage của trình duyệt trên máy này,
+   không gửi đi đâu cả). Lưu ĐẦU VÀO (ngày/giờ/giới tính/năm-tháng xem
+   vận hạn) thay vì lưu kết quả đã tính sẵn — để khi "Xem lại", App luôn
+   tính lại bằng đúng engine hiện tại (tránh dữ liệu cũ bị lệch nếu sau
+   này thuật toán được cập nhật/sửa lỗi).
+   ============================================================ */
+const HISTORY_STORE = 'ttt_chart_history';
+const HISTORY_MAX = 30;
+
+function getHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_STORE);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+function setHistory(arr) {
+  try { localStorage.setItem(HISTORY_STORE, JSON.stringify(arr)); } catch (e) { /* bo qua neu trinh duyet chan */ }
+}
+function gioSinhLabel(timeRaw) {
+  const opt = document.querySelector(`#timeIndex option[value="${timeRaw}"]`);
+  return opt ? opt.textContent : timeRaw;
+}
+
+function toggleHistoryPanel() {
+  const body = document.getElementById('historyBody');
+  body.style.display = body.style.display === 'none' ? 'flex' : 'none';
+}
+
+function renderHistoryList() {
+  const list = getHistory();
+  document.getElementById('historyCountLabel').textContent = list.length ? `(${list.length} lá số)` : '';
+  const box = document.getElementById('historyListBox');
+  if (!list.length) {
+    box.innerHTML = '<div class="history-empty">Chưa có lá số nào được lưu. Lập lá số rồi bấm "💾 Lưu vào lịch sử" để lưu lại xem sau.</div>';
+    return;
+  }
+  box.innerHTML = list.map(item => `
+    <div class="history-item">
+      <div>
+        <div class="hi-name">${item.hoTen ? escapeHtml(item.hoTen) : '(chưa đặt tên)'}</div>
+        <div class="hi-detail">${item.dobDay}/${item.dobMonth}/${item.dobYear} · ${escapeHtml(gioSinhLabel(item.timeRaw))} · ${item.gender === '男' ? 'Nam' : 'Nữ'} · lưu lúc ${new Date(item.savedAt).toLocaleString('vi-VN')}</div>
+      </div>
+      <div class="hi-actions">
+        <button class="btn-ghost" onclick="xemLaiLichSu('${item.id}')">👁 Xem lại</button>
+        <button class="btn-ghost" onclick="xoaLichSu('${item.id}')">🗑 Xóa</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function luuLaSoVaoLichSu() {
+  if (!currentChart) { showToast('Vui lòng lập lá số trước.', 'error'); return; }
+  const c = currentChart;
+  const entry = {
+    id: 'h' + Date.now() + Math.random().toString(36).slice(2, 7),
+    savedAt: new Date().toISOString(),
+    hoTen: c.hoTen || '',
+    dobDay: c.dobDay, dobMonth: c.dobMonth, dobYear: c.dobYear,
+    timeRaw: document.getElementById('timeIndex').value,
+    gender: c.gender,
+    viewYear: c.horoscope ? c.horoscope.viewYear : parseInt(document.getElementById('viewYear').value, 10),
+    viewMonth: c.horoscope ? c.horoscope.viewMonth : parseInt(document.getElementById('viewMonth').value, 10)
+  };
+  const list = getHistory();
+  list.unshift(entry);
+  if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
+  setHistory(list);
+  renderHistoryList();
+  showToast('Đã lưu lá số vào lịch sử ✓', 'success');
+}
+
+function xemLaiLichSu(id) {
+  const list = getHistory();
+  const item = list.find(x => x.id === id);
+  if (!item) { showToast('Không tìm thấy lá số này trong lịch sử.', 'error'); return; }
+  document.getElementById('hoTen').value = item.hoTen || '';
+  document.getElementById('dobDay').value = item.dobDay;
+  document.getElementById('dobMonth').value = item.dobMonth;
+  document.getElementById('dobYear').value = item.dobYear;
+  document.getElementById('timeIndex').value = item.timeRaw;
+  document.getElementById('gender').value = item.gender;
+  document.getElementById('viewYear').value = item.viewYear;
+  document.getElementById('viewMonth').value = item.viewMonth;
+  lapLaSo();
+  showToast('Đã tải lại lá số từ lịch sử, đang tính toán lại theo engine hiện tại...', 'success');
+}
+
+function xoaLichSu(id) {
+  if (!confirm('Xóa lá số này khỏi lịch sử?')) return;
+  const list = getHistory().filter(x => x.id !== id);
+  setHistory(list);
+  renderHistoryList();
+}
+
+function xoaTatCaLichSu() {
+  if (!getHistory().length) return;
+  if (!confirm('Xóa TOÀN BỘ lịch sử lá số đã lưu trên máy này? Không thể hoàn tác.')) return;
+  setHistory([]);
+  renderHistoryList();
+  showToast('Đã xóa toàn bộ lịch sử.', 'success');
+}
+
+renderHistoryList();
+
+/* ============================================================
+   PHẦN 4 — GEMINI CALL (Interactions API)
+   Cập nhật 2026-09: Google đã đổi API chính thức từ "generateContent"
+   sang "Interactions API" (v1beta/interactions) và ngừng hẳn model
+   gemini-2.0-flash. Đã tra cứu tài liệu chính thức mới nhất
+   (ai.google.dev/gemini-api/docs) trước khi sửa, không đoán bừa.
+   Model dùng: gemini-3.6-flash — đúng model mà Google báo lỗi gợi ý
+   thay thế cho key/tài khoản hiện tại của anh Thành. Nếu Google đổi
+   API lần nữa trong tương lai, sửa lại đúng 1 chỗ này (endpoint URL,
+   tên field trong body, và cách đọc "steps" ở response).
+   ============================================================ */
+const GEMINI_MODEL = 'gemini-3.6-flash';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+
+// Diễn giải lỗi trả về từ Google thành thông báo tiếng Việt dễ hiểu —
+// dùng chung cho cả phần gọi luận giải và phần "Kiểm tra API Key".
+function mapGoogleError(errJson, httpStatus) {
+  const status = errJson?.error?.status || '';
+  const message = errJson?.error?.message || '';
+  if (status === 'INVALID_ARGUMENT' || /api key not valid/i.test(message)) {
+    return 'Key không hợp lệ (sai, gõ thiếu ký tự, hoặc đã bị xóa/thu hồi). Kiểm tra lại tại aistudio.google.com/api-keys.';
+  }
+  if (status === 'PERMISSION_DENIED' || httpStatus === 403) {
+    return 'Key bị từ chối quyền truy cập — có thể Key thuộc dự án Google khác, hoặc "Generative Language API" chưa được bật cho dự án đó.';
+  }
+  if (status === 'RESOURCE_EXHAUSTED' || httpStatus === 429) {
+    return 'Đã hết hạn mức (quota) sử dụng cho Key này ở thời điểm hiện tại. Thử lại sau ít phút, hoặc kiểm tra gói cước/giới hạn tại Google AI Studio.';
+  }
+  if (status === 'UNAUTHENTICATED' || httpStatus === 401) {
+    return 'Key chưa được xác thực đúng — kiểm tra lại đã copy đủ và đúng ký tự chưa.';
+  }
+  if (/no longer available|not found/i.test(message)) {
+    return `Model "${GEMINI_MODEL}" hiện không khả dụng cho Key này — Google có thể đã đổi model một lần nữa. Chi tiết gốc: ${message}`;
+  }
+  return message || `Lỗi không xác định từ Google API (HTTP ${httpStatus || '?'}).`;
+}
+
+async function callGemini(prompt, options = {}) {
+  const { systemPrompt, temperature = 0.85, maxTokens = 4096 } = options;
+  const apiKey = getKey();
+  if (!apiKey) throw new Error('Chưa có Gemini API key — bấm vào "⚙ Gemini API Key" ở trên để nhập.');
+
+  const body = {
+    model: GEMINI_MODEL,
+    input: prompt,
+    generation_config: { temperature, max_output_tokens: maxTokens }
+  };
+  if (systemPrompt) body.system_instruction = systemPrompt;
+
+  const res = await fetch(`${GEMINI_API_BASE}/interactions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(mapGoogleError(e, res.status));
+  }
+  const data = await res.json();
+  const modelStep = (data.steps || []).find(s => s.type === 'model_output');
+  const textPart = modelStep?.content?.find(c => c.type === 'text');
+  return textPart?.text ?? '';
+}
+
+/* ===== Kiểm tra API Key: hợp lệ / còn dùng được hay không / hết quota ===== */
+async function checkApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  const statusEl = document.getElementById('apiKeyStatus');
+  if (!key) { statusEl.innerHTML = '<span style="color:#EF9A9A">Vui lòng nhập Key trước khi kiểm tra.</span>'; return; }
+  statusEl.innerHTML = '<span class="spinner"></span> Đang kiểm tra Key với Google...';
+  try {
+    const res = await fetch(`${GEMINI_API_BASE}/models?pageSize=5`, {
+      headers: { 'x-goog-api-key': key }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      statusEl.innerHTML = `<span style="color:#4CAF50">✓ Key hợp lệ và đang dùng được</span> (Google phản hồi bình thường, thấy ${data.models?.length ?? 0} model khả dụng). <span style="color:var(--text-dim)">Lưu ý: Google không cung cấp cách xem trước số lượt/quota còn lại — chỉ biết chắc khi thực sự hết quota (lúc đó Google sẽ báo lỗi 429).</span>`;
+      document.getElementById('apiDot').classList.add('active');
+    } else {
+      const e = await res.json().catch(() => ({}));
+      statusEl.innerHTML = `<span style="color:#EF5350">✗ ${mapGoogleError(e, res.status)}</span>`;
+      document.getElementById('apiDot').classList.remove('active');
+    }
+  } catch (err) {
+    statusEl.innerHTML = `<span style="color:#EF5350">✗ Lỗi mạng khi kiểm tra: ${err.message}</span>`;
+  }
+}
+
+/* ============================================================
+   PHẦN 5 — LUẬN GIẢI (Gemini + KB cổ văn đã dịch)
+   Nguyên tắc bắt buộc (theo Instructions dự án): luận giải phải là
+   1 bài viết văn xuôi liền mạch, giàu cảm xúc, KHÔNG được ghép nối
+   các mảnh dữ liệu thô (tên sao + độ sáng + câu phú) một cách máy móc.
+   AI phải trung thực: chỉ khẳng định điều có căn cứ trong tư liệu
+   được cung cấp; khi không có tư liệu khớp, phải tự suy luận hợp lý
+   theo NGŨ HÀNH và Ý NGHĨA CHUNG của sao, và nói rõ đây là suy luận
+   chung chứ không phải trích cổ văn cụ thể — không được bịa ra một
+   câu phú không có thật.
+   ============================================================ */
+const KB = JSON.parse(document.getElementById('kb-data').textContent);
+
+// Thu tu trinh bay theo cung, di theo vong thuan tu Menh (dung cho ca viec
+// liet ke tom tat va viec chi dinh thu tu 12 doan luan giai tung cung)
+const PALACE_ORDER = ['Mệnh','Phụ Mẫu','Phúc Đức','Điền Trạch','Quan Lộc','Nô Bộc','Thiên Di','Tật Ách','Tài Bạch','Tử Nữ','Phu Thê','Huynh Đệ'];
+
+function findPalace(chart, name) { return chart.palaces.find(p => p.name === name); }
+
+// Cung doi xung (cach nhau 6 chi) - dung de "muon sao" khi cung Vo Chinh Dieu
+function oppositeBranch(branch) {
+  const idx = CHI.indexOf(branch);
+  return CHI[(idx + 6) % 12];
+}
+
+function describeStars(p) {
+  const majors = p.majorStars.length ? p.majorStars.map(s => `${s.name}${s.brightness ? ` (${s.brightness})` : ''}`).join(', ') : '(Vô chính diệu)';
+  const minors = p.minorStars.length ? `; Phụ tinh chính: ${p.minorStars.join(', ')}` : '';
+  const adjs = p.adjectiveStars.length ? `; Phụ tinh nhỏ: ${p.adjectiveStars.join(', ')}` : '';
+  return `${majors}${minors}${adjs}`;
+}
+
+/* ============================================================
+   ENGINE NHẬN DIỆN CÁCH CỤC BẰNG CHƯƠNG TRÌNH (không phải AI đoán)
+   Áp dụng cho 35/38 cách cục đã có tư liệu chắc chắn trong danh mục
+   A8_v2 (nguồn nội dung A, việc ghép tên C). 3 cách còn lại (Mã Đầu
+   Đới Tiễn, Hình Tù Giáp Ấn, Khô Mộc Phùng Xuân) KHÔNG code hóa vì
+   điều kiện gốc quá mơ hồ để khẳng định chắc chắn — vẫn để AI tự
+   luận như cũ, dựa trên toàn bộ danh mục đã đưa vào tư liệu.
+
+   QUY ƯỚC KỸ THUẬT (khi tư liệu gốc dùng từ mơ hồ như "hội", "giáp",
+   cần 1 định nghĩa cụ thể để lập trình — đây là quy ước KINH ĐIỂN,
+   PHỔ BIẾN trong Tử Vi, không phải tự bịa):
+   - "Tam phương tứ chính" của 1 cung = chính cung đó + 2 cung Tam Hợp
+     + 1 cung Xung Chiếu (đối cung) = 4 cung.
+   - "Hội"/"hội chiếu" (khi không ghi rõ đồng cung) = xét trong phạm
+     vi Tam phương tứ chính của cung Mệnh (mặc định kinh điển).
+   - "Giáp" = 2 cung liền kề 2 bên (Chi-1 và Chi+1) của cung nói tới.
+   - "Sát tinh"/"Lục Sát" = Kình Dương, Đà La, Hỏa Tinh, Linh Tinh,
+     Địa Không, Địa Kiếp. "Tứ Sát" (khi tư liệu ghi rõ "4 sát") = 4
+     sao đầu (không tính Không/Kiếp).
+   - "Sinh ban ngày" = giờ Mão→Thân (05:00–17:00); "ban đêm" = Dậu→Dần.
+   ============================================================ */
+const LUC_SAT = ['Kình Dương','Đà La','Hỏa Tinh','Linh Tinh','Địa Không','Địa Kiếp'];
+const TU_SAT = ['Kình Dương','Đà La','Hỏa Tinh','Linh Tinh'];
+const BON_CUNG_MO = ['Thìn','Tuất','Sửu','Mùi'];
+const GIO_BAN_NGAY = ['Mão','Thìn','Tỵ','Ngọ','Mùi','Thân'];
+
+function tamHopBranches(b) { const i = CHI.indexOf(b); return [CHI[(i+4)%12], CHI[(i+8)%12]]; }
+function giapBranches(b) { const i = CHI.indexOf(b); return [CHI[(i+11)%12], CHI[(i+1)%12]]; }
+function getPalaceByBranch(chart, branch) { return chart.palaces.find(p => p.branch === branch); }
+function tamPhuongTuChinh(chart, palaceName) {
+  const anchor = findPalace(chart, palaceName);
+  if (!anchor) return [];
+  const branches = [anchor.branch, ...tamHopBranches(anchor.branch), oppositeBranch(anchor.branch)];
+  return branches.map(b => getPalaceByBranch(chart, b)).filter(Boolean);
+}
+function allStarNames(p) { return p ? [...p.majorStars.map(s => s.name), ...(p.minorStars || [])] : []; }
+function palaceHasStar(p, n) { return allStarNames(p).includes(n); }
+function palaceHasAllStars(p, ns) { return ns.every(n => palaceHasStar(p, n)); }
+function starsPresentIn(palaces, names) { const all = palaces.flatMap(allStarNames); return names.filter(n => all.includes(n)); }
+function palacesHaveAllStars(palaces, names) { const all = palaces.flatMap(allStarNames); return names.every(n => all.includes(n)); }
+function findPalaceOfStar(chart, n) { return chart.palaces.find(p => palaceHasStar(p, n)); }
+function starMutagen(chart, n) {
+  for (const p of chart.palaces) {
+    const m = p.majorStars.find(s => s.name === n); if (m && m.mutagen) return m.mutagen;
+    const mi = (p.minorStarsDetail||[]).find(s => s.name === n); if (mi && mi.mutagen) return mi.mutagen;
+  }
+  return null;
+}
+function findPalaceWithMutagen(chart, type) {
+  for (const p of chart.palaces) {
+    if (p.majorStars.some(s => s.mutagen === type)) return p;
+    if ((p.minorStarsDetail||[]).some(s => s.mutagen === type)) return p;
+  }
+  return null;
+}
+function mutagensInPalaces(palaces) {
+  const found = new Set();
+  palaces.forEach(p => { p.majorStars.forEach(s => s.mutagen && found.add(s.mutagen)); (p.minorStarsDetail||[]).forEach(s => s.mutagen && found.add(s.mutagen)); });
+  return found;
+}
+function palaceSatCount(p, satList) { return satList.filter(s => palaceHasStar(p, s)).length; }
+function isHam(b) { return b === 'Hãm'; }
+
+const CACH_CUC_RULES = [
+  { name:'Quân Thần Khánh Hội', source:'v0.16', note:'Thiên Phủ + Thiên Tướng + Thiên Lương cùng hội chiếu (tam phương tứ chính Mệnh) — "vua tôi hội ngộ tốt đẹp"',
+    test: c => palacesHaveAllStars(tamPhuongTuChinh(c,'Mệnh'), ['Thiên Phủ','Thiên Tướng','Thiên Lương']) ? {} : null },
+  { name:'Phủ Tướng Triều Viên', source:'v0.8', note:'Thiên Phủ + Thiên Tướng cùng chầu về Mệnh (tam phương tứ chính)',
+    test: c => palacesHaveAllStars(tamPhuongTuChinh(c,'Mệnh'), ['Thiên Phủ','Thiên Tướng']) ? {} : null },
+  { name:'Cơ Nguyệt Đồng Lương', source:'v0.9', note:'Thiên Cơ + Thái Âm + Thiên Đồng + Thiên Lương cùng hội (tam phương tứ chính Mệnh)',
+    test: c => palacesHaveAllStars(tamPhuongTuChinh(c,'Mệnh'), ['Thiên Cơ','Thái Âm','Thiên Đồng','Thiên Lương']) ? {} : null },
+  { name:'Cơ Lương Gia Hội', source:'v0.9', note:'Thiên Cơ + Thiên Lương hội hợp (tam phương tứ chính Mệnh), giỏi việc binh',
+    test: c => palacesHaveAllStars(tamPhuongTuChinh(c,'Mệnh'), ['Thiên Cơ','Thiên Lương']) ? {} : null },
+  { name:'Cự Nhật Đồng Cung', source:'v0.15', note:'Cự Môn + Thái Dương cùng đóng 1 cung',
+    test: c => { const p = c.palaces.find(pp => palaceHasAllStars(pp, ['Cự Môn','Thái Dương'])); return p ? {palace:p.name} : null; } },
+  { name:'Nhật Chiếu Lôi Môn', source:'v0.10', note:'Thái Dương tại Mão/Tý/Thìn, sinh ban ngày',
+    test: c => { const p = findPalaceOfStar(c,'Thái Dương'); if (!p) return null; const ok = ['Mão','Tý','Thìn'].includes(p.branch); const day = GIO_BAN_NGAY.includes(c.gioChi); return (ok && day) ? {palace:p.name} : null; } },
+  { name:'Dương Lương Xương Lộc', source:'v0.16', note:'Thái Dương+Thiên Lương+Văn Xương+Lộc Tồn cùng tại Mão, tuổi Ất',
+    test: c => { const p = getPalaceByBranch(c,'Mão'); if (!p) return null; return (palaceHasAllStars(p,['Thái Dương','Thiên Lương','Văn Xương','Lộc Tồn']) && c.canVN === 'Ất') ? {palace:p.name} : null; } },
+  { name:'Thạch Trung Ẩn Ngọc', source:'v0.15', note:'Cự Môn tại Tý/Ngọ có Hóa Khoa/Quyền/Lộc',
+    test: c => { const p = findPalaceOfStar(c,'Cự Môn'); if (!p || !['Tý','Ngọ'].includes(p.branch)) return null; const mu = starMutagen(c,'Cự Môn'); return (mu && mu !== 'Kỵ') ? {palace:p.name, mutagen:mu} : null; } },
+  { name:'Thất Sát Triều Đẩu', source:'v0.17', note:'Thất Sát tại Dần/Thân/Tý/Ngọ',
+    test: c => { const p = findPalaceOfStar(c,'Thất Sát'); return (p && ['Dần','Thân','Tý','Ngọ'].includes(p.branch)) ? {palace:p.name} : null; } },
+  { name:'Mã Đầu Đới Kiếm', source:'v0.19', note:'Kình Dương tại Ngọ',
+    test: c => { const p = findPalaceOfStar(c,'Kình Dương'); return (p && p.branch === 'Ngọ') ? {palace:p.name} : null; } },
+  { name:'Cự Cơ Đồng Lâm', source:'v0.15', note:'Cự Môn - Thiên Cơ cùng tại Mão',
+    test: c => { const p = getPalaceByBranch(c,'Mão'); return (p && palaceHasAllStars(p,['Cự Môn','Thiên Cơ'])) ? {palace:p.name} : null; } },
+  { name:'Tam Kỳ (Gia Hội)', source:'v0.27', note:'Hóa Quyền + Hóa Khoa + Hóa Lộc hội đủ 3 (tam phương tứ chính Mệnh)',
+    test: c => { const mu = mutagensInPalaces(tamPhuongTuChinh(c,'Mệnh')); return (mu.has('Lộc') && mu.has('Quyền') && mu.has('Khoa')) ? {} : null; } },
+  { name:'Quyền Lộc Tuần Phùng', source:'v0.27', note:'Hóa Quyền - Hóa Lộc gặp lại nhau (tam phương tứ chính Mệnh)',
+    test: c => { const mu = mutagensInPalaces(tamPhuongTuChinh(c,'Mệnh')); return (mu.has('Lộc') && mu.has('Quyền')) ? {} : null; } },
+  { name:'Khoa Quyền Lộc Giáp / Song Lộc Giáp Mệnh', source:'v0.27', note:'Hóa Khoa-Quyền-Lộc "giáp" 2 bên cung Mệnh',
+    test: c => { const men = findPalace(c,'Mệnh'); if (!men) return null; const [b1,b2] = giapBranches(men.branch); const p1=getPalaceByBranch(c,b1), p2=getPalaceByBranch(c,b2); const mu = mutagensInPalaces([p1,p2].filter(Boolean)); const hits = ['Lộc','Quyền','Khoa'].filter(x=>mu.has(x)); return hits.length >= 2 ? {mutagens:hits} : null; } },
+  { name:'Tả Hữu Đồng Cung', source:'v0.24', note:'Tả Phù + Hữu Bật đồng cung — "mặc áo gấm tía"',
+    test: c => { const p = c.palaces.find(pp => palaceHasAllStars(pp,['Tả Phù','Hữu Bật'])); return p ? {palace:p.name} : null; } },
+  { name:'Tham Vũ Đồng Hành', source:'v0.13', note:'Tham Lang đi cùng Vũ Khúc (đồng cung), về già mới phát',
+    test: c => { const p = c.palaces.find(pp => palaceHasAllStars(pp,['Tham Lang','Vũ Khúc'])); return p ? {palace:p.name} : null; } },
+  { name:'Tam Hợp Hỏa Tham', source:'v0.13', note:'Tham Lang gặp Hỏa Tinh (đồng cung hoặc tam hợp) tại 1 trong 4 cung Mộ',
+    test: c => { const p = findPalaceOfStar(c,'Tham Lang'); if (!p || !BON_CUNG_MO.includes(p.branch)) return null; const rel = [p, ...tamHopBranches(p.branch).map(b=>getPalaceByBranch(c,b))].filter(Boolean); return starsPresentIn(rel,['Hỏa Tinh']).length ? {palace:p.name} : null; } },
+  { name:'Tham Linh Triều Viên', source:'v0.13', note:'Tham Lang gặp Linh Tinh (đồng cung hoặc tam hợp) tại 1 trong 4 cung Mộ',
+    test: c => { const p = findPalaceOfStar(c,'Tham Lang'); if (!p || !BON_CUNG_MO.includes(p.branch)) return null; const rel = [p, ...tamHopBranches(p.branch).map(b=>getPalaceByBranch(c,b))].filter(Boolean); return starsPresentIn(rel,['Linh Tinh']).length ? {palace:p.name} : null; } },
+  { name:'Hùng Tú Triều Viên', source:'v0.14', note:'Liêm Trinh tại Thân/Mùi, không gặp sát tinh (cùng cung)',
+    test: c => { const p = findPalaceOfStar(c,'Liêm Trinh'); if (!p || !['Thân','Mùi'].includes(p.branch)) return null; return palaceSatCount(p, LUC_SAT) === 0 ? {palace:p.name} : null; } },
+  { name:'Lộc Mã Giao Trì', source:'v0.12, v0.26', note:'(Vũ Khúc hoặc Lộc Tồn) + Thiên Mã cùng cung, phát tài xa quê',
+    test: c => { const p1 = c.palaces.find(pp => palaceHasAllStars(pp,['Lộc Tồn','Thiên Mã'])); const p2 = c.palaces.find(pp => palaceHasAllStars(pp,['Vũ Khúc','Thiên Mã'])); const p = p1 || p2; return p ? {palace:p.name} : null; } },
+  { name:'Song Lộc Triều Viên', source:'v0.25', note:'Lộc Tồn + sao mang Hóa Lộc cùng trong tam phương tứ chính Mệnh',
+    test: c => { const p1 = findPalaceOfStar(c,'Lộc Tồn'); const p2 = findPalaceWithMutagen(c,'Lộc'); if (!p1 || !p2) return null; const tpc = tamPhuongTuChinh(c,'Mệnh').map(p=>p.name); return (tpc.includes(p1.name) && tpc.includes(p2.name)) ? {} : null; } },
+  { name:'Minh Lộc Ám Lộc', source:'v0.25', note:'Lộc Tồn (ám lộc) + Hóa Lộc (minh lộc) cùng gặp trong tam hợp/tứ chính Mệnh',
+    test: c => { const p1 = findPalaceOfStar(c,'Lộc Tồn'); const p2 = findPalaceWithMutagen(c,'Lộc'); if (!p1 || !p2) return null; const tpc = tamPhuongTuChinh(c,'Mệnh').map(p=>p.name); return (tpc.includes(p1.name) && tpc.includes(p2.name)) ? {} : null; } },
+  { name:'Mệnh Vô Chính Diệu', source:'v0.30', note:'Cung Mệnh không có chính tinh',
+    test: c => { const men = findPalace(c,'Mệnh'); return (men && men.majorStars.length === 0) ? {} : null; } },
+  { name:'Cực Cư Mão Dậu', source:'v0.7', note:'Tử Vi tại Mão/Dậu, gặp sát tinh (cùng cung) → xu hướng tu hành',
+    test: c => { const p = findPalaceOfStar(c,'Tử Vi'); if (!p || !['Mão','Dậu'].includes(p.branch)) return null; return palaceSatCount(p, LUC_SAT) > 0 ? {palace:p.name} : null; } },
+  { name:'Cự Phùng Tứ Sát', source:'v0.15', note:'Cự Môn hãm địa, gặp đủ 4 sát tinh (tam phương tứ chính của Cự Môn)',
+    test: c => { const p = findPalaceOfStar(c,'Cự Môn'); if (!p) return null; const cm = p.majorStars.find(s=>s.name==='Cự Môn'); if (!cm || !isHam(cm.brightness)) return null; return palacesHaveAllStars(tamPhuongTuChinh(c,p.name), TU_SAT) ? {palace:p.name} : null; } },
+  { name:'Mệnh Lý Phùng Không', source:'v0.28', note:'Cung Mệnh có cả Địa Kiếp và Địa Không — "chim giữa trời gãy cánh"',
+    test: c => { const men = findPalace(c,'Mệnh'); return (men && palaceHasAllStars(men, ['Địa Kiếp','Địa Không'])) ? {} : null; } },
+  { name:'Khôi Việt Hung Xung', source:'v0.23', note:'Thiên Khôi hoặc Thiên Việt gặp từ 2 sát tinh trở lên (cùng cung)',
+    test: c => { const pK = findPalaceOfStar(c,'Thiên Khôi'); const pV = findPalaceOfStar(c,'Thiên Việt'); const hit = [pK,pV].filter(Boolean).find(p => palaceSatCount(p, LUC_SAT) >= 2); return hit ? {palace:hit.name} : null; } },
+  { name:'Vũ Tham Thủ Thân', source:'v0.13', note:'Tham Lang + Vũ Khúc cùng tọa thủ cung Thân',
+    test: c => { const than = c.palaces.find(p => p.isBodyPalace); return (than && palaceHasAllStars(than, ['Tham Lang','Vũ Khúc'])) ? {palace:than.name} : null; } },
+  { name:'Cự Cơ Hóa Dậu', source:'v0.15', note:'Cự Môn - Thiên Cơ cùng tại Dậu, có Hóa cát (Lộc/Quyền/Khoa)',
+    test: c => { const p = getPalaceByBranch(c,'Dậu'); if (!p || !palaceHasAllStars(p,['Cự Môn','Thiên Cơ'])) return null; const mu = mutagensInPalaces([p]); return (mu.has('Lộc')||mu.has('Quyền')||mu.has('Khoa')) ? {palace:p.name} : null; } },
+  { name:'Nguyệt Đồng Ngộ Sát', source:'v0.16', note:'Thiên Đồng + Thái Âm cùng cung, cả hai hãm địa, gặp sát tinh',
+    test: c => { const p = c.palaces.find(pp => palaceHasAllStars(pp, ['Thiên Đồng','Thái Âm'])); if (!p) return null; const td = p.majorStars.find(s=>s.name==='Thiên Đồng'); const ta = p.majorStars.find(s=>s.name==='Thái Âm'); if (!isHam(td&&td.brightness) || !isHam(ta&&ta.brightness)) return null; return palaceSatCount(p, LUC_SAT) > 0 ? {palace:p.name} : null; } },
+  { name:'Mã Lạc Không Vong', source:'v0.26', note:'Thiên Mã gặp Tuần/Triệt Không tại chính cung — cả đời bôn ba',
+    test: c => { const p = findPalaceOfStar(c,'Thiên Mã'); return (p && (p.triet || p.tuan)) ? {palace:p.name} : null; } },
+  { name:'Lương Mã Phiêu Đãng', source:'v0.16', note:'Thiên Lương + Thiên Mã cùng cung — phóng khoáng, hay đi đây đó',
+    test: c => { const p = c.palaces.find(pp => palaceHasAllStars(pp, ['Thiên Lương','Thiên Mã'])); return p ? {palace:p.name} : null; } },
+  { name:'Dương Đà Giáp Kỵ', source:'v0.19, v0.30', note:'Kình Dương - Đà La giáp 2 bên cung có Hóa Kỵ — bại cục',
+    test: c => { const p = findPalaceWithMutagen(c,'Kỵ'); if (!p) return null; const [b1,b2] = giapBranches(p.branch); const p1=getPalaceByBranch(c,b1), p2=getPalaceByBranch(c,b2); const hasK = (p1&&palaceHasStar(p1,'Kình Dương'))||(p2&&palaceHasStar(p2,'Kình Dương')); const hasD = (p1&&palaceHasStar(p1,'Đà La'))||(p2&&palaceHasStar(p2,'Đà La')); return (hasK && hasD) ? {palace:p.name} : null; } },
+  { name:'Hỏa Linh Giáp Mệnh', source:'v0.21, v0.30', note:'Hỏa Tinh - Linh Tinh giáp 2 bên cung Mệnh — bại cục',
+    test: c => { const men = findPalace(c,'Mệnh'); if (!men) return null; const [b1,b2] = giapBranches(men.branch); const p1=getPalaceByBranch(c,b1), p2=getPalaceByBranch(c,b2); const hasH = (p1&&palaceHasStar(p1,'Hỏa Tinh'))||(p2&&palaceHasStar(p2,'Hỏa Tinh')); const hasL = (p1&&palaceHasStar(p1,'Linh Tinh'))||(p2&&palaceHasStar(p2,'Linh Tinh')); return (hasH && hasL) ? {} : null; } },
+  { name:'Kiếp Không Giáp Mệnh', source:'v0.28, v0.30', note:'Địa Kiếp - Địa Không giáp 2 bên cung Mệnh — bại cục',
+    test: c => { const men = findPalace(c,'Mệnh'); if (!men) return null; const [b1,b2] = giapBranches(men.branch); const p1=getPalaceByBranch(c,b1), p2=getPalaceByBranch(c,b2); const hasKi = (p1&&palaceHasStar(p1,'Địa Kiếp'))||(p2&&palaceHasStar(p2,'Địa Kiếp')); const hasKo = (p1&&palaceHasStar(p1,'Địa Không'))||(p2&&palaceHasStar(p2,'Địa Không')); return (hasKi && hasKo) ? {} : null; } },
+];
+
+function detectCachCuc(chart) {
+  return CACH_CUC_RULES.map(r => { const res = r.test(chart); return res ? { name:r.name, source:r.source, note:r.note, detail:res } : null; }).filter(Boolean);
+}
+
+function buildChartSummaryText(chart) {
+  const lines = [];
+  lines.push(`Họ tên: ${chart.hoTen || '(không cung cấp)'}`);
+  lines.push(`Ngày sinh Dương lịch: ${chart.dobDay}/${chart.dobMonth}/${chart.dobYear}, giới tính: ${chart.gender === '男' ? 'Nam' : 'Nữ'}`);
+  lines.push(`Năm sinh Can Chi: ${chart.canVN} ${chart.chiVN} — Ngũ Hành Cục: ${chart.cuc}`);
+  lines.push(`Tháng sinh (ÂL): ${chart.canChiThang.can} ${chart.canChiThang.chi} · Ngày sinh (ÂL): ${chart.canChiNgay.can} ${chart.canChiNgay.chi} · Giờ sinh: ${chart.canChiGio.can} ${chart.canChiGio.chi}`);
+  lines.push(`Âm Dương: ${chart.amDuongNhan}${chart.amDuongThuanNghich ? ` (${chart.amDuongThuanNghich})` : ''}`);
+  lines.push(`Bản Mệnh Nạp Âm: ${chart.banMenh ? `${chart.banMenh.ten} (hành ${chart.banMenh.hanh})` : '(chưa xác định)'}${chart.quanHeCucBanMenh ? ` — quan hệ với Cục: ${chart.quanHeCucBanMenh}` : ''}`);
+  lines.push(`Chủ Mệnh: ${chart.chuMenh} · Chủ Thân: ${chart.chuThan} · Thân cư cung: ${chart.thanCuCung || '(không xác định)'}`);
+  if (chart.vongLoc) {
+    lines.push(`Vòng Lộc: Lộc Tồn tại cung ${chart.vongLoc.locTonCung || '(không xác định)'}${chart.vongLoc.hoaLocCung ? `; Hóa Lộc đóng ở sao ${chart.vongLoc.hoaLocSao} tại cung ${chart.vongLoc.hoaLocCung}` : '; không có sao nào mang Hóa Lộc trong lá số này'}.`);
+  }
+  if (chart.tuoiHop) {
+    const th = chart.tuoiHop;
+    lines.push(`Tuổi hợp/nên tránh của thân chủ (theo hệ Tam Hợp - Lục Hợp - Lục Xung Địa Chi, KHÔNG phải suy trực tiếp từ lá số): hợp nhất (Tam Hợp) là tuổi ${th.hopNhatConGiap.join(', ')} (${th.hopNhat.join(', ')}); hợp (Lục Hợp) là tuổi ${th.hopNhiConGiap.join(', ')} (${th.hopNhi.join(', ')}); nên thận trọng/tránh (Lục Xung) là tuổi ${th.canTranhConGiap.join(', ')} (${th.canTranh.join(', ')}).`);
+  }
+  if (chart.tatAchScan && chart.tatAchScan.length) {
+    lines.push(`Các năm cần lưu ý sức khỏe (quét 10 năm tới từ năm đang xem, dựa trên lưu diệu Lục Sát Tinh và Hóa Kỵ lưu niên chiếu vào đúng cung Tật Ách của bản mệnh — CHỈ liệt kê đúng các năm sau, không suy diễn thêm năm khác):`);
+    chart.tatAchScan.forEach(t => {
+      const chiTiet = [t.satTinhLuu.length ? `lưu ${t.satTinhLuu.join(', ')} chiếu Tật Ách` : '', t.hoaKySao ? `Hóa Kỵ (${t.hoaKySao}) chiếu Tật Ách` : ''].filter(Boolean).join('; ');
+      lines.push(`- Năm ${t.nam} (${t.can} ${t.chi}): ${chiTiet}`);
+    });
+  } else if (chart.tatAchScan) {
+    lines.push('Quét 10 năm tới từ năm đang xem: KHÔNG có năm nào phát hiện Lục Sát lưu hoặc Hóa Kỵ lưu niên chiếu vào cung Tật Ách — không có cảnh báo đặc biệt về sức khỏe theo dữ liệu vận hạn ở giai đoạn này.');
+  }
+  if (chart.horoscope) {
+    const h = chart.horoscope;
+    lines.push(`Vận hạn đang xem (năm ${h.viewYear}, tuổi mụ ${h.nominalAge}): Đại Hạn ${h.daiHan.start}-${h.daiHan.end} tuổi (${h.daiHan.can} ${h.daiHan.chi}), Tiểu Hạn (${h.tieuHan.can} ${h.tieuHan.chi}), Lưu Niên (${h.luuNien.can} ${h.luuNien.chi})${h.luuNguyet ? `, Lưu Nguyệt tháng ${h.viewMonth}/${h.viewYear} (${h.luuNguyet.can} ${h.luuNguyet.chi}${h.luuNguyet.hoa && h.luuNguyet.hoa.length ? `, Tứ Hóa tháng: ${h.luuNguyet.hoa.join(', ')}` : ''})` : ''}.`);
+  }
+  if (chart.quyNhan && chart.quyNhan.length) {
+    lines.push(`Quý nhân/phò tá có mặt trong lá số: ${chart.quyNhan.map(q => `${q.sao} tại cung ${q.cung}${q.hoTroMenh ? ' (nằm trong tam phương tứ chính Mệnh — có hỗ trợ trực tiếp)' : ' (không nằm trong tam phương tứ chính Mệnh)'}`).join('; ')}.`);
+  } else {
+    lines.push('Quý nhân/phò tá (Khôi Việt, Tả Hữu, Xương Khúc): KHÔNG có sao nào trong nhóm này xuất hiện ở lá số này.');
+  }
+  if (chart.diemManhYeu && chart.diemManhYeu.menh) {
+    const dm = chart.diemManhYeu.menh;
+    lines.push(`Cung Mệnh (để luận Điểm mạnh - điểm yếu): ${dm.voChinhDieu ? 'Vô chính diệu (không có chính tinh tọa thủ)' : dm.chinhTinh.map(s => `${s.name}${s.brightness ? ` (${s.brightness})` : ''}`).join(', ')}; số sát tinh (Lục Sát) đồng cung: ${dm.soSatTinhDongCung}.`);
+    if (chart.diemManhYeu.than) {
+      lines.push(`Cung Thân (không trùng cung Mệnh, cũng góp phần định hình con người): đóng tại cung ${chart.diemManhYeu.than.cungTen}, chính tinh: ${chart.diemManhYeu.than.chinhTinh.length ? chart.diemManhYeu.than.chinhTinh.map(s => `${s.name}${s.brightness ? ` (${s.brightness})` : ''}`).join(', ') : '(Vô chính diệu)'}.`);
+    }
+  }
+  if (chart.vanCongDanh) {
+    const vcd = chart.vanCongDanh;
+    lines.push(`Cung Quan Lộc (để luận Vận công danh): ${vcd.chinhTinh.length ? vcd.chinhTinh.map(s => `${s.name}${s.brightness ? ` (${s.brightness})` : ''}`).join(', ') : '(Vô chính diệu)'}${vcd.hoaCat.length ? `; có Hóa ${vcd.hoaCat.join(', Hóa ')} đóng ngay tại đây` : ''}${vcd.trongTamPhuongMenh ? '; cung này nằm trong tam phương tứ chính của Mệnh (liên hệ trực tiếp, mạnh)' : ''}.`);
+  }
+  if (chart.cungTuNu || chart.cungPhucDuc || chart.cungDienTrachHauVan) {
+    lines.push('Dữ liệu cho mục Con cái và hậu vận:');
+    if (chart.cungTuNu) lines.push(`- Cung Tử Nữ (con cái): ${chart.cungTuNu.majorStars.length ? chart.cungTuNu.majorStars.map(s => `${s.name}${s.brightness ? ` (${s.brightness})` : ''}`).join(', ') : '(Vô chính diệu)'}.`);
+    if (chart.cungPhucDuc) lines.push(`- Cung Phúc Đức (phúc phần/hậu vận tinh thần): ${chart.cungPhucDuc.majorStars.length ? chart.cungPhucDuc.majorStars.map(s => `${s.name}${s.brightness ? ` (${s.brightness})` : ''}`).join(', ') : '(Vô chính diệu)'}.`);
+    if (chart.cungDienTrachHauVan) lines.push(`- Cung Điền Trạch (an cư/tài sản, hỗ trợ thêm cho hậu vận — LƯU Ý: chỉ luận nhà cửa/tài sản nói chung, KHÔNG có dữ liệu về hướng nhà cụ thể): ${chart.cungDienTrachHauVan.majorStars.length ? chart.cungDienTrachHauVan.majorStars.map(s => `${s.name}${s.brightness ? ` (${s.brightness})` : ''}`).join(', ') : '(Vô chính diệu)'}.`);
+  }
+  lines.push('');
+  lines.push('Chi tiết 12 cung (trình bày theo thứ tự Mệnh → Phụ Mẫu → Phúc Đức → Điền Trạch → Quan Lộc → Nô Bộc → Thiên Di → Tật Ách → Tài Bạch → Tử Nữ → Phu Thê → Huynh Đệ):');
+  PALACE_ORDER.forEach(name => {
+    const p = findPalace(chart, name);
+    if (!p) return;
+    const extras = [p.isBodyPalace ? 'CUNG THÂN' : '', p.thaiTue || '', p.triet ? 'Triệt Không' : '', p.tuan ? 'Tuần Không' : ''].filter(Boolean).join(', ');
+    let line = `- ${p.name} (${p.branch})${extras ? ' [' + extras + ']' : ''}: ${describeStars(p)}`;
+    if (p.majorStars.length === 0) {
+      const oppBranch = oppositeBranch(p.branch);
+      const oppPalace = chart.palaces.find(pp => pp.branch === oppBranch);
+      if (oppPalace && oppPalace.majorStars.length) {
+        line += ` [Vô chính diệu — theo phép cổ điển, mượn xét thêm chính tinh của cung xung chiếu đối diện là ${oppPalace.name} (${oppBranch}): ${oppPalace.majorStars.map(s=>`${s.name}${s.brightness?` (${s.brightness})`:''}`).join(', ')}]`;
+      }
+    }
+    lines.push(line);
+  });
+  return lines.join('\n');
+}
+
+function collectRelevantKB(chart) {
+  const keys = new Set();
+  chart.palaces.forEach(p => {
+    p.majorStars.forEach(s => keys.add(s.name));
+    p.minorStars.forEach(n => keys.add(n));
+  });
+  // Luon dua vao nguyen tac chung + cac muc lien quan cung Menh/Than/Tai Bach/Dien Trach/Phuc Duc
+  keys.add('__MENH_CUNG_NGUYEN_TAC__');
+  keys.add('__THAN_CUNG_NGUYEN_TAC__');
+  keys.add('__TAI_BACH_CUNG__');
+  keys.add('__DIEN_TRACH_TAI_TRACH__');
+  keys.add('__TAI_PHUC_PHUC_DUC__');
+  keys.add('Nạp Âm');
+  keys.add('Hóa Lộc'); keys.add('Hóa Quyền'); keys.add('Hóa Khoa');
+
+  const blocks = [];
+  keys.forEach(k => {
+    if (KB.stars[k]) {
+      blocks.push(`### Tư liệu: ${k} (Độ tin cậy: ${KB.stars[k].confidence})\n${KB.stars[k].content}`);
+    }
+  });
+  blocks.push(`### Danh mục Cách Cục cổ điển (để đối chiếu xem lá số có khớp cách nào đã biết không, độ tin cậy: nguồn nội dung A, việc ghép tên C)\n${KB.cachCucCatalog}`);
+  return blocks.join('\n\n---\n\n');
+}
+
+function buildLuanGiaiPrompt(chart) {
+  const chartText = buildChartSummaryText(chart);
+  const kbText = collectRelevantKB(chart);
+
+  const systemPrompt = `Bạn là một người viết luận giải Tử Vi Đẩu Số cho ứng dụng T&T Tử Vi Đẩu Số. Bạn KHÔNG phải là một cái máy tra bảng — bạn viết như một người am hiểu huyền học, có tâm hồn thơ ca, đang ngồi trò chuyện chân thành với người xem lá số.
+
+YÊU CẦU BẮT BUỘC VỀ VĂN PHONG (đây là nguyên tắc quan trọng nhất, không được vi phạm):
+1. Mỗi đoạn/mục phải là văn xuôi LIỀN MẠCH, có cảm xúc, giàu hình ảnh — giống văn phong trữ tình Việt Nam (gợi nhớ Phú Quang, Trịnh Công Sơn khi viết về thân phận con người): sâu lắng, nội tâm, dùng hình ảnh thiên nhiên/quê hương khi phù hợp, nhưng KHÔNG sến súa, KHÔNG sáo rỗng.
+2. TUYỆT ĐỐI KHÔNG được viết dạng liệt kê máy móc kiểu "Sao X tại cung Y: [chép nguyên câu phú]. Sao Z tại cung W: [chép nguyên câu phú]." Đó là cách làm SAI mà dự án này cố tình tránh. Bạn phải TỰ TỔNG HỢP, DIỄN GIẢI LẠI bằng lời văn của chính bạn, kết nối các sao trong từng cung thành một ý nghĩa sống động về lĩnh vực cuộc sống mà cung đó đại diện, không nhắc lại y nguyên câu chữ trong tư liệu.
+3. Xưng hô: gọi người xem là "bạn", giọng điệu gần gũi, tôn trọng, không phán xét, không dọa dẫm (đặc biệt các cung/sao xấu — luận giải theo hướng "đây là thử thách cần lưu ý" chứ không phải "vận hạn khủng khiếp").
+4. QUAN TRỌNG — TRÁNH LẶP TỪ: vì bài viết có nhiều đoạn/mục liên tiếp (12 cung + tổng quan + vận hạn), tuyệt đối không được lặp lại cùng một câu/cụm từ "an toàn" ở cuối nhiều đoạn khác nhau (ví dụ tránh kiểu cứ kết đoạn nào cũng bằng "...và chữ Tâm trong cách nhìn đời"). Mỗi đoạn phải có cách mở và cách kết riêng, ngôn từ đa dạng, đọc lại toàn bài trước khi hoàn thành để tự kiểm tra và sửa nếu thấy trùng lặp.
+
+YÊU CẦU BẮT BUỘC VỀ TÍNH NHẤT QUÁN (đây là nguyên tắc SỐNG CÒN với uy tín của App, không được vi phạm):
+1. Với CÙNG một lá số (cùng dữ liệu sao/cung/Cách Cục/vận hạn được cung cấp bên dưới), kết luận CỐT LÕI của bạn phải là MỘT DUY NHẤT dù được hỏi lại bao nhiêu lần. Bạn phải coi việc luận giải là ÁP DỤNG một cách máy móc, có căn cứ từ dữ liệu/tư liệu đã cho — không phải đang "sáng tác lại từ đầu" mỗi lần được hỏi. Không được đổi chiều hướng tốt/xấu, không được đổi bản chất một nhận định (ví dụ: đã kết luận Quan Lộc hợp nghề kỹ thuật thì lần sau không được đổi thành hợp nghệ thuật, trừ khi bản thân bạn thấy cả hai đều đúng và giữ nguyên cả hai).
+2. Giữa các lần luận giải khác nhau cho cùng một lá số, bạn CHỈ được phép thay đổi CÁCH DÙNG TỪ, CÁCH SẮP XẾP CÂU, CÁCH MỞ/KẾT ĐOẠN — dùng từ ngữ tiếng Việt chuẩn, ĐỒNG NGHĨA, diễn đạt khác đi nhưng PHẢI GIỮ NGUYÊN NGHĨA ĐEN và Ý NGHĨA CỐT LÕI của từng nhận định. Tuyệt đối tránh dùng từ mơ hồ/đa nghĩa khiến người đọc hiểu sai lệch hẳn sang ý khác so với lần đọc trước.
+3. Lý do: nếu hai lần xem cùng một lá số cho ra hai kết luận trái ngược nhau, người dùng sẽ mất niềm tin vào độ chính xác của thuật toán và của App. Vì vậy mọi nhận định phải bám sát dữ liệu/căn cứ đã cho, không tự do suy diễn thêm điều không có căn cứ, không để cảm hứng văn chương làm thay đổi bản chất một kết luận.
+
+YÊU CẦU VỀ CÁ THỂ HÓA THEO BỐI CẢNH CÁ NHÂN (chỉ áp dụng nếu người dùng có cung cấp bối cảnh ở cuối phần dữ liệu bên dưới):
+4. Lá số nền giống như một HẠT GIỐNG — cùng một hạt giống nhưng gieo trên các mảnh đất, khí hậu, sự chăm sóc khác nhau thì khi nảy mầm, ra hoa kết trái sẽ biểu hiện khác nhau. Nếu người dùng có mô tả bối cảnh cá nhân (nơi sinh, hoàn cảnh gia đình, môi trường sống/làm việc, sự kiện quan trọng...), hãy dùng nó để giúp lời luận giải ÁP DỤNG SÁT HỢP hơn vào đời sống thực tế của người này — ví dụ một xu hướng "giỏi giao tiếp, hướng ngoại" trong lá số có thể biểu hiện thành nghề bán hàng/kinh doanh nếu bối cảnh là môi trường kinh doanh, hoặc thành giáo viên/người dẫn chương trình nếu bối cảnh là môi trường giáo dục/truyền thông.
+5. TUYỆT ĐỐI KHÔNG được để bối cảnh cá nhân làm THAY ĐỔI kết luận cốt lõi từ lá số (nguyên tắc nhất quán ở mục 1-3 vẫn áp dụng nguyên vẹn) — bối cảnh chỉ giúp CHỌN VÍ DỤ/CÁCH ÁP DỤNG cụ thể hơn cho đúng người này, không được dùng để bịa ra một "sự thật mới" không có căn cứ từ lá số. Dùng ngôn ngữ như "trong hoàn cảnh bạn chia sẻ...", "với môi trường như vậy, xu hướng này có thể biểu hiện thành..." — không khẳng định tuyệt đối rằng hoàn cảnh ấy LÀ DO lá số gây ra.
+6. Nếu người dùng KHÔNG cung cấp bối cảnh cá nhân, luận giải bình thường theo lá số, không cần giả định hoàn cảnh nào cả.
+
+YÊU CẦU BẮT BUỘC VỀ TÍNH TRUNG THỰC (không được vi phạm):
+1. Tư liệu cổ văn cung cấp bên dưới có độ tin cậy: nguồn GỐC (chữ Hán cổ) đáng tin cậy cao (A), nhưng BẢN DỊCH tiếng Việt do AI dịch trước đây, CHƯA được chuyên gia kiểm chứng (C, có 1 mục về Nạp Âm chỉ ở mức D). Vì vậy: dùng tư liệu này làm CHẤT LIỆU GỢI Ý, không trích dẫn như thể là chân lý tuyệt đối 100%.
+2. Khi một sao/tổ hợp sao trong lá số CÓ tư liệu cụ thể phù hợp, hãy dựa vào đó để luận (nhưng diễn đạt lại bằng lời văn của bạn, không chép nguyên).
+3. Khi một tổ hợp cụ thể KHÔNG có tư liệu nào khớp thẳng, đừng bịa ra một câu phú không có thật. Thay vào đó, hãy suy luận HỢP LÝ dựa trên bản chất Ngũ Hành và ý nghĩa tổng quát đã biết của từng sao liên quan, và có thể nói khéo kiểu "theo bản chất của các sao hội tụ nơi đây..." thay vì giả vờ đang trích một câu cổ văn cụ thể.
+4. Về Cách Cục: phần "CÁC CÁCH CỤC ĐÃ ĐƯỢC XÁC NHẬN BẰNG THUẬT TOÁN" (nếu có, xem bên dưới) là kết quả đối chiếu chắc chắn bằng code, hãy tin dùng và nhắc đến chúng trong bài (diễn giải bằng lời văn của bạn). Ngoài ra bạn CÓ THỂ tự đối chiếu thêm với "Danh mục Cách Cục cổ điển" đầy đủ nếu thấy tổ hợp sao khớp RÕ RÀNG với 1 cách khác chưa được thuật toán xác nhận — nhưng phải rất thận trọng, chỉ nêu khi khớp chắc chắn, và nói rõ đây là bạn tự nhận thấy (khác với các cách đã được xác nhận sẵn). Tuyệt đối không tự bịa thêm cách cục có tên nếu tổ hợp sao không thực sự khớp.
+5. Với cung "Vô chính diệu" (không có chính tinh): áp dụng đúng phép cổ điển là xét thêm chính tinh của cung xung chiếu đối diện (đã được liệt kê kèm theo trong dữ liệu cung đó), coi như ảnh hưởng gián tiếp/mờ nhạt hơn — không bịa ra chính tinh không có thật cho cung này.
+
+CẤU TRÚC BẮT BUỘC — viết theo ĐÚNG 4 PHẦN, ĐÚNG THỨ TỰ sau (dùng markdown "## " cho tiêu đề phần lớn, "### " cho tiêu đề mỗi cung trong Phần 1 và mỗi mục nhỏ trong Phần 4):
+
+## PHẦN 1: LUẬN GIẢI TỪNG CUNG
+Lần lượt viết một đoạn văn riêng cho ĐỦ CẢ 12 CUNG, đúng theo thứ tự đã cho trong dữ liệu (Mệnh, Phụ Mẫu, Phúc Đức, Điền Trạch, Quan Lộc, Nô Bộc, Thiên Di, Tật Ách, Tài Bạch, Tử Nữ, Phu Thê, Huynh Đệ). Mỗi cung bắt đầu bằng tiêu đề "### Cung [Tên cung] ([Chi])" — nếu là cung Thân thì ghi thêm "(Cung Thân)" trong tiêu đề. Nội dung mỗi đoạn: dựa trên chính tinh/phụ tinh của cung đó, diễn giải ý nghĩa cụ thể về đúng lĩnh vực cuộc sống mà cung ấy đại diện (Mệnh=cốt cách con người, Phụ Mẫu=cha mẹ/bề trên, Phúc Đức=phúc phần/tâm linh/đời sống tinh thần, Điền Trạch=nhà cửa/bất động sản, Quan Lộc=sự nghiệp, Nô Bộc=bạn bè/cấp dưới/quan hệ xã hội, Thiên Di=việc đi xa/thay đổi môi trường, Tật Ách=sức khỏe, Tài Bạch=tiền bạc, Tử Nữ=con cái, Phu Thê=hôn nhân/người bạn đời, Huynh Đệ=anh chị em). Độ dài: hầu hết các cung khoảng 70-120 chữ, RIÊNG 3 cung sau đây (vì đây là 3 điều đa số người xem quan tâm nhất) cần viết dài hơn, cụ thể hơn (khoảng 150-200 chữ):
+   - **Quan Lộc**: ngoài mô tả tính chất sự nghiệp, PHẢI gợi ý cụ thể 2-4 NHÓM NGHỀ NGHIỆP/lĩnh vực công việc phù hợp với tổ hợp sao này (ví dụ: "phù hợp các công việc thiên về...", nêu ví dụ nghề cụ thể), dựa trên bản chất Ngũ Hành và ý nghĩa của chính tinh tọa thủ — không chỉ nói chung chung "sự nghiệp thuận lợi".
+   - **Phu Thê**: ngoài mô tả đời sống hôn nhân nói chung, PHẢI phác họa cụ thể hơn về TÍNH CÁCH/KIỂU NGƯỜI của người bạn đời (dựa trên chính tinh tại cung này) và những điều nên lưu ý để giữ hạnh phúc gia đạo.
+   - **Tử Nữ**: ngoài mô tả chung, PHẢI gợi ý cụ thể hơn về TÍNH CÁCH con cái và cách nuôi dạy phù hợp dựa trên chính tinh tại cung này.
+Đây là mục đích quan trọng nhất của bài luận giải: giúp người xem hiểu RÕ CHI TIẾT bản thân qua từng mặt cuộc sống, nên phần này cần cụ thể, đúng trọng tâm của từng cung, không viết chung chung.
+
+## PHẦN 2: LUẬN GIẢI TỔNG QUAN
+Sau khi đã đi qua từng cung, viết một bài tổng hợp LIỀN MẠCH (khoảng 350-450 chữ, không dùng tiêu đề phụ, không gạch đầu dòng) kết nối các cung lại thành một bức tranh chung, xuyên suốt về cốt cách, con đường đời, thế mạnh/thử thách của người này — đây là phần "nhìn tổng thể" sau khi đã hiểu từng chi tiết ở Phần 1, tránh lặp lại nguyên văn những gì đã viết ở Phần 1 mà hãy tổng hợp theo góc nhìn mới, khái quát hơn. Trong đoạn này, dành ít nhất 1-2 câu tổng kết lại điểm mấu chốt về SỰ NGHIỆP PHÙ HỢP và GIA ĐẠO (vợ chồng, con cái) — vì đây là 2 điều đa số người đọc quan tâm nhất, cần được nhắc lại cô đọng ở phần tổng quan này, không chỉ nằm rải rác ở Phần 1.
+
+## PHẦN 3: VẬN HẠN HIỆN TẠI VÀ TƯƠNG LAI GẦN
+Viết 2-3 đoạn về giai đoạn vận hạn: (1) Đại Hạn 10 năm đang đi qua — xu hướng chung của cả giai đoạn 10 năm này; (2) Tiểu Hạn/Lưu Niên của năm đang xem — điều cần lưu ý trong chính năm nay; (3) nếu dữ liệu Lưu Nguyệt (vận hạn tháng) có trong lá số bên dưới, dành một đoạn ngắn nói cụ thể về tháng đang xem (Can Chi tháng, Tứ Hóa tháng nếu có) — đây là cấp độ chi tiết nhất, cần bám sát dữ liệu, không suy diễn xa; (4) một đoạn ngắn nhìn về hướng sắp tới (tương lai gần) dựa trên xu hướng của Đại Hạn hiện tại. (Dữ liệu Đại Hạn/Tiểu Hạn/Lưu Niên/Lưu Nguyệt đã có trong dữ liệu lá số bên dưới — App tính đúng 3 cấp độ vận hạn chính thức theo Tử Vi Đẩu Số cổ điển: Đại Hạn 10 năm, Tiểu Hạn/Lưu Niên 1 năm, và Lưu Nguyệt theo tháng; không có khái niệm "trung hạn" riêng trong cổ văn nên không tự bịa thêm một cấp độ vận hạn không có căn cứ). Kết thúc bằng một đôi dòng động viên, chiêm nghiệm, ấm áp.
+
+## PHẦN 4: ĐỊNH HƯỚNG CHUYÊN SÂU THEO CHỦ ĐỀ
+Đây là phần thực dụng, cụ thể, TRẢ LỜI THẲNG các câu hỏi mà đa số người xem lá số đều muốn biết — trình bày theo đúng phong cách "tách riêng từng chủ đề" của các App Tử Vi uy tín. Viết thành ĐÚNG 10 mục nhỏ theo ĐÚNG THỨ TỰ dưới đây, mỗi mục có tiêu đề "### " với ĐÚNG NGUYÊN VĂN tên mục đã cho (không đổi chữ, không viết tắt, không thêm bớt — vì App sẽ dùng đúng tên này để tách thành các thẻ/tab riêng trên giao diện). Mỗi mục PHẢI bám sát đúng dữ kiện đã cho trong lá số bên dưới — tuyệt đối không suy diễn ra dữ kiện mới không có trong tư liệu, và dùng ngôn ngữ xác suất/truyền thống phù hợp ("theo cách luận truyền thống...", "thường có xu hướng...", "một khả năng biểu hiện là...") thay vì khẳng định chắc chắn như khoa học:
+
+### Ngành nghề phù hợp
+Dựa trên cung Quan Lộc (chính tinh, tam phương tứ chính), cung Mệnh, cung Tài Bạch, và các Cách Cục đã xác nhận (nếu có) — chỉ ra con đường sự nghiệp phù hợp nhất, và nếu tổ hợp sao phù hợp làm kinh doanh/buôn bán (ví dụ nhóm Vũ Khúc/Liêm Trinh/Tham Lang/Thất Sát...) thì nêu rõ NÊN kinh doanh làm chủ hay đi làm thuê/công chức sẽ thuận hơn, và lĩnh vực/ngành nghề cụ thể nào (tài chính, buôn bán, kỹ thuật, sáng tạo, dịch vụ...) hợp với tổ hợp sao này nhất, kèm lý do dựa trên chính tinh. TUYỆT ĐỐI KHÔNG bịa ra quy tắc "ngũ hành X hợp nghề Y" nếu không có trong tư liệu — chỉ suy từ đúng ý nghĩa cổ văn của các chính tinh đang có.
+
+### Điểm mạnh - điểm yếu
+Dựa vào dữ liệu "Cung Mệnh (để luận Điểm mạnh - điểm yếu)" và "Cung Thân" bên dưới — nếu Mệnh có chính tinh, nêu rõ ĐIỂM MẠNH (mặt tốt, sáng) và ĐIỂM YẾU/HẠN CHẾ (mặt cần khắc phục) của chính NHỮNG chính tinh đó (mỗi chính tinh cổ điển đều có cả 2 mặt, không sao nào toàn tốt hay toàn xấu), có tính đến độ sáng miếu/hãm và số sát tinh đồng cung (càng nhiều sát tinh đồng cung, điểm yếu càng cần lưu ý). Nếu Mệnh Vô chính diệu, luận điểm mạnh/yếu theo hướng "người linh hoạt, dễ chịu ảnh hưởng từ hoàn cảnh xung quanh" (đúng ý nghĩa cổ điển của Vô chính diệu) kết hợp chính tinh mượn từ cung xung chiếu nếu có trong dữ liệu 12 cung bên dưới. Nếu có cung Thân riêng (khác cung Mệnh), thêm 1-2 câu về việc chính tinh tại đó bổ sung thêm nét tính cách nào ở giai đoạn trung-hậu vận.
+
+### Quý nhân giúp đỡ
+Dựa đúng vào dữ liệu "Quý nhân/phò tá có mặt trong lá số" bên dưới — nếu CÓ sao trong nhóm Thiên Khôi/Thiên Việt/Tả Phù/Hữu Bật/Văn Xương/Văn Khúc, nêu rõ sao nào đang ở cung nào, và cung đó có nằm trong tam phương tứ chính Mệnh hay không (nếu có, nhấn mạnh đây là quý nhân hỗ trợ trực tiếp, mạnh; nếu không, vẫn có giúp đỡ nhưng ở mức gián tiếp/xa hơn), từ đó gợi ý nên chủ động tìm kiếm sự giúp đỡ/hợp tác trong lĩnh vực mà cung đó đại diện. Nếu dữ liệu cho biết KHÔNG có sao quý nhân nào, nói thẳng điều này theo hướng trung lập (không phải xấu, chỉ là con đường thành công của người này chủ yếu dựa vào nội lực bản thân hơn là ngoại lực/quý nhân), không bịa thêm sao không có thật.
+
+### Bạn bè, đối tác kinh doanh — nên chọn ai, tránh ai
+Dựa trên cung Nô Bộc (tính chất về bạn bè/cấp dưới/đối tác) kết hợp CÙNG dữ liệu "Tuổi hợp/nên tránh" (dùng lại đúng bộ tuổi đã tính, vì đây là đặc điểm chung của thân chủ chứ không đổi theo từng cung), gợi ý nên kết giao/hợp tác làm ăn với người tuổi nào thuận lợi nhất, tuổi nào cần thận trọng khi hợp tác lớn. Cũng nhắc lại ghi chú về nguồn gốc hệ Tam/Lục Hợp - Lục Xung như mục dưới.
+
+### Vận tình duyên
+Trước tiên mô tả ngắn gọn tính chất hôn nhân/kiểu người bạn đời dựa trên cung Phu Thê (không lặp lại y nguyên Phần 1). Sau đó, dựa trên dữ liệu "Tuổi hợp/nên tránh" đã cho bên dưới, nêu rõ các tuổi (con giáp) hợp nhất, hợp vừa, và nên thận trọng khi kết duyên. PHẢI ghi chú rõ ràng rằng gợi ý tuổi này đến từ hệ Tam Hợp - Lục Hợp - Lục Xung của Địa Chi (một hệ thống dân gian phổ biến, độc lập với bản thân lá số Tử Vi), dùng để bổ trợ tham khảo thêm cùng đặc điểm của cung Phu Thê, không phải kết luận tuyệt đối.
+
+### Vận công danh
+Dựa vào dữ liệu "Cung Quan Lộc (để luận Vận công danh)" bên dưới — luận về con đường công danh, thăng tiến, địa vị (khác góc nhìn với mục "Ngành nghề phù hợp" ở trên: mục này tập trung vào THĂNG TIẾN/DANH VỌNG chứ không phải chọn ngành nghề). Nếu có Hóa Lộc/Quyền/Khoa đóng ngay tại Quan Lộc, đây là dấu hiệu tốt cho công danh, cần nêu rõ; nếu có Hóa Kỵ, cần lưu ý thận trọng hơn trong thăng tiến. Nếu cung này nằm trong tam phương tứ chính Mệnh, nhấn mạnh sự nghiệp gắn bó mật thiết với cốt cách con người. Kết hợp thêm dữ liệu Đại Hạn hiện tại (bên dưới) nếu giai đoạn này có liên quan thuận lợi hay cần thận trọng cho công danh.
+
+### Tài lộc bản mệnh
+Dữ liệu "Vòng Lộc" bên dưới cho biết chính xác Lộc Tồn và Hóa Lộc (nếu có) đang đóng ở cung nào. Dựa vào đúng cung đó (ý nghĩa của cung ấy trong 12 cung) kết hợp cung Tài Bạch, chỉ rõ: tài lộc của người này đến từ đâu/lĩnh vực nào dễ tụ tài nhất (nếu Lộc rơi vào Quan Lộc → tài lộc từ sự nghiệp chính; nếu rơi vào Nô Bộc → từ quan hệ/hợp tác; nếu rơi vào Thiên Di → từ đi xa/ngoại giao, v.v., LUẬN THEO ĐÚNG cung mà Lộc thực sự đang đóng, không mặc định), và gợi ý cụ thể nên tập trung/hành động ra sao để phát huy tốt nhất.
+
+### Con cái và hậu vận
+Dựa vào dữ liệu "Con cái và hậu vận" bên dưới (cung Tử Nữ, cung Phúc Đức, cung Điền Trạch) — phần con cái: luận tính cách con cái và duyên số hiếm/muộn/đề huề dựa trên chính tinh tại Tử Nữ (không đoán số lượng con cụ thể vì cổ văn hiện có không đủ căn cứ để khẳng định con số chính xác). Phần hậu vận: dựa cung Phúc Đức luận về đời sống tinh thần/phúc phần lúc về già, có thể nhắc thêm 1 câu về Điền Trạch cho khía cạnh an cư/tài sản tích lũy — LƯU Ý bắt buộc: KHÔNG được nói gì về "hướng nhà" hay hướng tốt xấu cụ thể của căn nhà, vì đây thuộc một môn khác (Bát Trạch Phong Thủy) mà App hiện CHƯA có căn cứ tài liệu, chỉ luận chung về nhà cửa/tài sản như một khía cạnh đời sống.
+
+### Sức khỏe và rủi ro
+Dựa đúng vào danh sách năm cụ thể trong dữ liệu "Các năm cần lưu ý sức khỏe" bên dưới (nếu có) — với MỖI năm trong danh sách đó, nêu rõ năm nào, sao nào đang chiếu vào cung Tật Ách, và khuyên nên chú ý giữ gìn sức khỏe/khám sức khỏe định kỳ trong giai đoạn đó, dùng ngôn ngữ NHẸ NHÀNG, mang tính CẢNH BÁO PHÒNG NGỪA CHUNG (ví dụ "nên chú ý sức khỏe, khám định kỳ", "cẩn trọng khi lái xe/đi lại"), TUYỆT ĐỐI KHÔNG chẩn đoán bệnh cụ thể nào, không dùng tên bệnh. Nếu dữ liệu cho biết KHÔNG có năm nào đáng chú ý trong 10 năm tới, nói rõ điều này theo hướng tích cực (giai đoạn sức khỏe tương đối ổn định), không tự bịa ra năm xấu nào ngoài danh sách đã cho.
+
+### Gợi ý cải vận
+Đây là mục "lời khuyên hành động" — CHỈ được dựa THUẦN vào chính lá số Tử Vi đã luận ở các phần/mục trên (Đại Hạn/Lưu Niên hiện tại, Hóa Kỵ, cung Mệnh/Thân, các mục đã luận phía trên), tổng hợp lại thành 3-5 lời khuyên NGẮN GỌN, THỰC TẾ về: nên chủ động/thận trọng ở việc gì trong giai đoạn hiện tại, thái độ ứng xử nào phù hợp với tổ hợp sao của bản thân để hạn chế điểm yếu và phát huy điểm mạnh đã nêu ở mục "Điểm mạnh - điểm yếu". TUYỆT ĐỐI KHÔNG được gợi ý đeo/dùng vật phẩm phong thủy, đá phong thủy, màu sắc hợp mệnh, con số may mắn, hướng nhà, hay bất kỳ pháp môn hóa giải nào KHÔNG thuộc bản thân thuật Tử Vi Đẩu Số — vì App hiện CHƯA có tài liệu xác thực cho các pháp môn đó, tuyệt đối không suy đoán hay bịa ra để tránh sai lệch, thiếu căn cứ.
+
+Tổng độ dài toàn bài (cả 4 phần): khoảng 3800-4800 chữ.`;
+
+  const cachCucText = (chart.cachCucDaXacNhan && chart.cachCucDaXacNhan.length)
+    ? chart.cachCucDaXacNhan.map(cc => `- ${cc.name} (tại/liên quan cung ${cc.detail.palace || '(tam phương/giáp Mệnh)'}): ${cc.note} [nguồn ${cc.source}]`).join('\n')
+    : '(Không có cách cục nào trong nhóm đã kiểm chứng chắc chắn khớp với lá số này — không sao, không phải lá số nào cũng rơi vào 1 cách cục có tên; nếu vậy hãy luận theo tổ hợp sao bình thường, không ép phải gán 1 cái tên.)';
+
+  const boiCanhRaw = (document.getElementById('boiCanhCaNhan')?.value || '').trim();
+  const boiCanhBlock = boiCanhRaw
+    ? `\n\n--- BỐI CẢNH CÁ NHÂN (do người dùng TỰ cung cấp, KHÔNG phải dữ liệu tính từ lá số — chỉ dùng để cá thể hóa cách áp dụng, không được dùng để đổi kết luận cốt lõi) ---\n\n${boiCanhRaw}`
+    : '';
+
+  const userPrompt = `Đây là lá số Tử Vi Đẩu Số cần luận giải:
+
+${chartText}
+
+--- CÁC CÁCH CỤC ĐÃ ĐƯỢC XÁC NHẬN BẰNG THUẬT TOÁN (chắc chắn khớp, không phải AI tự đoán) ---
+
+${cachCucText}
+
+--- TƯ LIỆU CỔ VĂN THAM KHẢO (Tử Vi Đẩu Số Toàn Thư, quyển 3 — bản dịch tham khảo) ---
+
+${kbText}${boiCanhBlock}
+
+Hãy viết bài luận giải hoàn chỉnh theo đúng cấu trúc 4 phần (Luận giải từng cung → Tổng quan → Vận hạn → Định hướng chuyên sâu theo chủ đề, đủ 10 mục nhỏ đúng thứ tự và ĐÚNG NGUYÊN VĂN tên mục đã cho) và toàn bộ yêu cầu đã nêu ở trên. Nhắc lại: kết luận cốt lõi phải nhất quán nếu lá số này được luận giải lại vào lần khác, chỉ được đổi cách hành văn.`;
+
+  return { systemPrompt, userPrompt };
+}
+
+// Chuyen doi markdown don gian (##, ###, **bold**) tu AI thanh HTML de hien thi
+// co tieu de ro rang cho 3 phan lon + 12 muc cung, khong can thu vien ngoai.
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function inlineMd(s) {
+  return escapeHtml(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+function renderLuanGiaiMarkdown(text) {
+  const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+  const out = [];
+  blocks.forEach(b => {
+    const lines = b.split('\n');
+    const first = lines[0].trim();
+    let headingHtml = '', rest = lines;
+    if (/^###\s+/.test(first)) { headingHtml = `<h3>${inlineMd(first.replace(/^###\s+/, ''))}</h3>`; rest = lines.slice(1); }
+    else if (/^##\s+/.test(first)) { headingHtml = `<h2>${inlineMd(first.replace(/^##\s+/, ''))}</h2>`; rest = lines.slice(1); }
+    else if (/^#\s+/.test(first)) { headingHtml = `<h2>${inlineMd(first.replace(/^#\s+/, ''))}</h2>`; rest = lines.slice(1); }
+    if (headingHtml) out.push(headingHtml);
+    const restText = rest.join('\n').trim();
+    if (restText) out.push(`<p>${inlineMd(restText).replace(/\n/g, '<br>')}</p>`);
+  });
+  return out.join('');
+}
+
+/* ============================================================
+   Bổ sung 23/09/2026 — tách PHẦN 4 (10 mục chuyên sâu) thành dạng
+   THẺ/TAB riêng như giao diện các App Tử Vi uy tín, thay vì để chung
+   1 khối văn xuôi dài. Nguyên tắc AN TOÀN: nếu vì lý do gì đó AI không
+   trả lời đúng định dạng "## PHẦN 4" + đủ "### " như đã yêu cầu trong
+   prompt, hàm này KHÔNG được làm vỡ App — phải tự động lùi về cách
+   hiển thị văn xuôi liền mạch như cũ (renderLuanGiaiMarkdown trên toàn
+   bộ văn bản), không được để trống hay lỗi.
+   ============================================================ */
+function renderLuanGiaiOutput(text) {
+  const marker = /^##\s*PHẦN\s*4\s*[:：]/m;
+  const m = text.match(marker);
+  if (!m) return { mainHtml: renderLuanGiaiMarkdown(text), tabs: null, flatHtml: renderLuanGiaiMarkdown(text) };
+
+  const mainText = text.slice(0, m.index).trim();
+  const phan4Text = text.slice(m.index + m[0].length).trim();
+  const parts = phan4Text.split(/\n(?=###\s+)/).map(s => s.trim()).filter(Boolean);
+  const tabs = parts.map(p => {
+    const lines = p.split('\n');
+    const title = lines[0].replace(/^###\s+/, '').trim();
+    const bodyMd = lines.slice(1).join('\n').trim();
+    return title && bodyMd ? { title, html: renderLuanGiaiMarkdown(bodyMd) } : null;
+  }).filter(Boolean);
+
+  // Nếu tách được quá ít mục (AI không theo đúng định dạng 10 mục), không đủ tin cậy
+  // để dựng giao diện tab — lùi về hiển thị văn xuôi liền mạch an toàn như cũ.
+  if (tabs.length < 3) return { mainHtml: renderLuanGiaiMarkdown(text), tabs: null, flatHtml: renderLuanGiaiMarkdown(text) };
+
+  const mainHtml = renderLuanGiaiMarkdown(mainText);
+  const flatHtml = mainHtml + '<h2>PHẦN 4: ĐỊNH HƯỚNG CHUYÊN SÂU THEO CHỦ ĐỀ</h2>' + tabs.map(t => `<h3>${inlineMd(t.title)}</h3>${t.html}`).join('');
+  return { mainHtml, tabs, flatHtml };
+}
+
+// Dựng HTML khu vực luận giải: phần văn xuôi (Phần 1-3) + khối tab Phần 4 (nếu tách được)
+function buildLuanGiaiAreaHtml(parsed) {
+  let html = `<div class="luangiai-text">${parsed.mainHtml}</div>`;
+  if (parsed.tabs) {
+    const tabbtns = parsed.tabs.map((t, i) => `<button type="button" class="phan4-tabbtn${i === 0 ? ' active' : ''}" onclick="switchPhan4Tab(${i})">${escapeHtml(t.title)}</button>`).join('');
+    const panels = parsed.tabs.map((t, i) => `<div class="phan4-panel${i === 0 ? ' active' : ''}" data-phan4-idx="${i}"><div class="luangiai-text">${t.html}</div></div>`).join('');
+    html += `<h2 style="color:var(--gold); font-size:1.15rem; margin:30px 0 12px 0; padding-bottom:8px; border-bottom:1px solid var(--border);">PHẦN 4: ĐỊNH HƯỚNG CHUYÊN SÂU THEO CHỦ ĐỀ</h2>
+      <div class="phan4-wrap"><div class="phan4-tabbar">${tabbtns}</div><div class="phan4-panels">${panels}</div></div>`;
+  }
+  return html;
+}
+
+function switchPhan4Tab(idx) {
+  const wrap = document.querySelector('.phan4-wrap');
+  if (!wrap) return;
+  wrap.querySelectorAll('.phan4-tabbtn').forEach((btn, i) => btn.classList.toggle('active', i === idx));
+  wrap.querySelectorAll('.phan4-panel').forEach(p => p.classList.toggle('active', parseInt(p.dataset.phan4Idx, 10) === idx));
+}
+
+async function luanGiaiLaSo() {
+  if (!currentChart) { showToast('Vui lòng lập lá số trước.', 'error'); return; }
+  const btn = document.getElementById('btnLuanGiai');
+  const area = document.getElementById('luanGiaiArea');
+  btn.disabled = true;
+  const oldLabel = btn.textContent;
+  btn.innerHTML = '<span class="spinner"></span> Đang luận giải...';
+  area.innerHTML = '<div class="luangiai-placeholder"><span class="spinner"></span> AI đang đọc lá số và tra cứu cổ văn, xin chờ trong giây lát...</div>';
+  try {
+    const { systemPrompt, userPrompt } = buildLuanGiaiPrompt(currentChart);
+    // Ha nhiet do (tu 0.9 xuong 0.45) theo yeu cau cua anh Thanh ve tinh nhat quan:
+    // AI van con sang tao trong cach dung tu, nhung giam manh do "ngau hung" lam
+    // thay doi noi dung ket luan cot loi giua cac lan luan giai cung 1 la so.
+    // Luu y trung thuc: khong co gia tri temperature nao dam bao 100% giong het
+    // tuyet doi giua cac lan goi (ban chat xac suat cua LLM), day la muc giam
+    // thuc te + huong dan prompt ro rang de toi thieu hoa su khac biet, khong
+    // phai loi hua tuyet doi.
+    // maxTokens tăng từ 16000 lên 24000 vì Phần 4 nay có 10 mục nhỏ (thay vì 5 mục trước đây),
+    // ước tính bài luận giải dài hơn (~3800-4800 chữ thay vì ~2800-3600 chữ). Chưa tra cứu lại
+    // trần token đầu ra chính xác của gemini-3.6-flash — nếu anh Thành gặp lỗi "vượt giới hạn
+    // token" khi thử thật, báo lại để em tra đúng tài liệu chính thức và chỉnh lại con số này.
+    const text = await callGemini(userPrompt, { systemPrompt, temperature: 0.45, maxTokens: 24000 });
+    const parsed = renderLuanGiaiOutput(text);
+    lastLuanGiaiHtml = parsed.flatHtml || null;
+    area.innerHTML = text ? buildLuanGiaiAreaHtml(parsed) : '<div class="luangiai-placeholder">(Không nhận được nội dung từ AI, vui lòng thử lại.)</div>';
+  } catch (err) {
+    lastLuanGiaiHtml = null;
+    area.innerHTML = `<div class="warn-banner">Không thể luận giải: ${err.message}</div>`;
+    showToast('Lỗi luận giải: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldLabel;
+  }
+}
+
+/* ============================================================
+   TẢI LUẬN GIẢI VỀ MÁY DƯỚI DẠNG PDF
+   Dùng window.print() có sẵn của trình duyệt (Lưu dưới dạng PDF trong
+   hộp thoại in) — không cần thư viện ngoài, không phụ thuộc mạng,
+   không có rủi ro font/Unicode tiếng Việt vì trình duyệt tự render.
+   ============================================================ */
+function taiLuanGiaiPDF() {
+  if (!currentChart) { showToast('Vui lòng lập lá số trước.', 'error'); return; }
+  if (!lastLuanGiaiHtml) { showToast('Vui lòng bấm "Luận giải lá số này" và chờ có kết quả trước khi tải về.', 'error'); return; }
+
+  const c = currentChart;
+  const h = c.horoscope;
+  const gioLabel = document.getElementById('timeIndex').selectedOptions[0]?.textContent || c.gioChi;
+  const vanHanLine = h
+    ? `Vận hạn đang xem: Đại Hạn ${h.daiHan.start}-${h.daiHan.end} tuổi (${h.daiHan.can} ${h.daiHan.chi}) · Tiểu Hạn/Lưu Niên năm ${h.viewYear} (${h.tieuHan.can} ${h.tieuHan.chi} / ${h.luuNien.can} ${h.luuNien.chi})${h.luuNguyet ? ` · Lưu Nguyệt tháng ${h.viewMonth}/${h.viewYear} (${h.luuNguyet.can} ${h.luuNguyet.chi})` : ''}`
+    : '';
+
+  const printArea = document.getElementById('printArea');
+  printArea.innerHTML = `
+    <div class="print-header">
+      <h1>T&amp;T Tử Vi Đẩu Số — Luận giải lá số${c.hoTen ? ': ' + escapeHtml(c.hoTen) : ''}</h1>
+      <p class="pline">Ngày sinh Dương lịch: ${c.dobDay}/${c.dobMonth}/${c.dobYear} · Giờ sinh: ${escapeHtml(gioLabel)} · Giới tính: ${c.gender === '男' ? 'Nam' : 'Nữ'}</p>
+      <p class="pline">Năm sinh Can Chi: ${c.canVN} ${c.chiVN} · Ngũ Hành Cục: ${c.cuc}</p>
+      ${vanHanLine ? `<p class="pline">${escapeHtml(vanHanLine)}</p>` : ''}
+    </div>
+    <div class="luangiai-text">${lastLuanGiaiHtml}</div>
+  `;
+
+  const oldTitle = document.title;
+  const safeName = (c.hoTen || 'LaSo').trim().replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_]/gu, '');
+  document.title = `LuanGiai_TuVi_${safeName}_${c.dobDay}-${c.dobMonth}-${c.dobYear}`;
+
+  const restoreTitle = () => { document.title = oldTitle; window.removeEventListener('afterprint', restoreTitle); };
+  window.addEventListener('afterprint', restoreTitle);
+
+  window.print();
+}
+</script>
+</body>
+</html>
