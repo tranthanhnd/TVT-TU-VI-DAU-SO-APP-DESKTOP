@@ -1,6 +1,6 @@
 [package]
 name = "tvt-tu-vi-dau-so-app"
-version = "1.0.0"
+version = "1.1.0"
 description = "T&T Tu Vi Dau So App (T&T Hoang Gia Royal)"
 authors = ["T&T Hoang Gia Royal"]
 edition = "2021"
